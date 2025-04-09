@@ -24,10 +24,8 @@ import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -143,10 +141,6 @@ fun AiLingoNavGraph(
         }
     }
 
-    var selectedTopicImage by remember {
-        mutableStateOf("")
-    }
-
     AppTheme {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -227,10 +221,10 @@ fun AiLingoNavGraph(
                         TopicsScreen(
                             topicsUiState = topicsUiState,
                             onTopicClick = { topicName, topicImage ->
-                                selectedTopicImage = topicImage
                                 navController.navigate(
                                     ChatPage(
-                                        topicName = topicName
+                                        topicName = topicName,
+                                        topicImage = topicImage
                                     )
                                 )
                             }
@@ -244,12 +238,13 @@ fun AiLingoNavGraph(
 
                         ChatScreen(
                             topicName = args.topicName,
-                            topicImage = selectedTopicImage,
+                            topicImage = args.topicImage,
                             chatUiState = chatUiState,
                             messagesState = messagesState,
                             onEvent = { event ->
                                 chatViewModel.onEvent(event)
-                            }
+                            },
+                            userAvatar = if (loginState is LoginUiState.Success) loginState.user.avatar else null
                         )
                     }
                     composable<RegistrationPage> {

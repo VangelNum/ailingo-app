@@ -179,9 +179,8 @@ fun RegistrationContent(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Text(
                 stringResource(Res.string.register_title),
@@ -260,42 +259,44 @@ fun RegistrationContent(
                 errorMessage = if (!isPasswordValid) stringResource(Res.string.password_invalid) else null
             )
             VerticalSpacer(8.dp)
-            Button(
-                onClick = {
-                    onRegisterClick()
-                },
-                modifier = Modifier
-                    .width(OutlinedTextFieldDefaults.MinWidth)
-                    .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
-                enabled = pendingRegistrationState !is UiState.Loading,
-                shape = RoundedCornerShape(16.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    stringResource(Res.string.continue_app),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                if (pendingRegistrationState is UiState.Loading) {
-                    Spacer(modifier = Modifier.width(16.dp))
-                    SmallLoadingIndicator()
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.padding(bottom = 32.dp)
-            ) {
-                Text(
-                    stringResource(Res.string.already_have_account)
-                )
-                Text(
-                    stringResource(Res.string.log_in),
-                    modifier = Modifier.clickable {
-                        onNavigateToLoginPage()
+                Button(
+                    onClick = {
+                        onRegisterClick()
                     },
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                    modifier = Modifier
+                        .width(OutlinedTextFieldDefaults.MinWidth)
+                        .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
+                    enabled = pendingRegistrationState !is UiState.Loading,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        stringResource(Res.string.continue_app),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    if (pendingRegistrationState is UiState.Loading) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        SmallLoadingIndicator()
+                    }
+                }
+                VerticalSpacer(32.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    modifier = Modifier.padding(bottom = 32.dp)
+                ) {
+                    Text(
+                        stringResource(Res.string.already_have_account)
+                    )
+                    Text(
+                        stringResource(Res.string.log_in),
+                        modifier = Modifier.clickable {
+                            onNavigateToLoginPage()
+                        },
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }

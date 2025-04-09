@@ -105,4 +105,8 @@
     <string name="enter_your_new_password">Enter new password</string>
     <string name="current_password">Current password (necessarily)</string>
     <string name="enter_current_password">Enter current password</string>
+    <string name="topic_confirmation_title">Topic Start Confirmation</string>
+    <string name="topic_confirmation_message">Are you sure you want to start the topic "%1$s" for %2$s?</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
 </resources>

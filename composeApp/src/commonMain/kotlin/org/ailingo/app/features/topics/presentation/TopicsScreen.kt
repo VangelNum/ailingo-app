@@ -1,6 +1,7 @@
 package org.ailingo.app.features.topics.presentation
 
 import ailingo.composeapp.generated.resources.Res
+import ailingo.composeapp.generated.resources.loadingstate
 import ailingo.composeapp.generated.resources.topic_list_empty
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,7 +33,7 @@ fun TopicsScreen(
         }
         is UiState.Idle -> {}
         is UiState.Loading -> {
-            LoadingScreen(modifier = Modifier.fillMaxSize())
+            LoadingScreen(modifier = Modifier.fillMaxSize(), image = Res.drawable.loadingstate, imageSize = 100.dp)
         }
         is UiState.Success -> {
             if (topicsUiState.data.isEmpty()) {
@@ -58,13 +59,13 @@ fun TopicsContent(
         contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 8.dp),
         modifier = Modifier.fillMaxSize()
     ) {
-        items(topics) { photo ->
-            ContentTopics(photo, onTopicClick)
+        items(topics) { topic ->
+            ContentTopics(topic, onTopicClick)
         }
     }
 }
 
-private fun createSampleTopics(): List<Topic> {
+fun createSampleTopics(): List<Topic> {
     return listOf(
         Topic(1, "Travel Adventures", "https://images.unsplash.com/photo-1503220718398-8a546943e773?ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dHJhdmVsfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&w=1000&q=80", 0, "Let's talk about your dream destinations!", "You are a travel expert.", 10),
         Topic(2, "Culinary Delights", "https://images.unsplash.com/photo-1414235134978-e0729c044e02?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Zm9vZHxlbnwwfHwwfHw%3D&ixlib=rb-1.2.1&w=1000&q=80", 5, "What's the most delicious thing you've ever eaten?", "You are a food critic.", 20),

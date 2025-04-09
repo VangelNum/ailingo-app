@@ -20,12 +20,12 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
 import io.ktor.client.request.header
-import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.takeFrom
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.HttpResponseContainer
 import io.ktor.client.statement.HttpResponsePipeline
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -155,25 +155,19 @@ class AuthTokenInterceptor(config: Config) {
                 proceed()
             }
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
-                val originalCall = context
-                val originalResponse = originalCall.response
+                val originalResponse = context.response
                 if (originalResponse.status == HttpStatusCode.Forbidden) {
                     Logger.i("Received 403/Forbidden, attempting to refresh token")
                     val refreshedTokens = plugin.refreshToken(plugin.tokenRepository.await(), scope)
                     if (refreshedTokens != null) {
-                        Logger.i("Token refreshed successfully, retrying original request")
-                        val originalRequest = context.request
-                        scope.request {
-                            HttpRequestBuilder().apply {
-                                takeFrom(originalRequest)
-                                headers {
-                                    remove(HttpHeaders.Authorization)
-                                    set(HttpHeaders.Authorization, "Bearer ${refreshedTokens.accessToken}")
-                                }
-                            }
+                        val retryResponse: HttpResponse = context.client.request {
+                            takeFrom(context.request)
+                            headers.remove(HttpHeaders.Authorization)
+                            header(HttpHeaders.Authorization, "Bearer ${refreshedTokens.accessToken}")
                         }
+                        val newSubject = HttpResponseContainer(subject.expectedType, retryResponse)
+                        proceedWith(newSubject)
                     } else {
-                        //TODO NAVIGATE TO LOGIN
                         CoroutineScope(Dispatchers.Main.immediate).launch {
                             SnackbarController.sendEvent(
                                 event = SnackbarEvent(

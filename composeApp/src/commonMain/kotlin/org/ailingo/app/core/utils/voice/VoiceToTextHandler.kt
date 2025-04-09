@@ -14,7 +14,7 @@ expect class VoiceToTextHandler {
     val state: StateFlow<VoiceToTextState>
     var isAvailable: Boolean
 
-    fun startListening(languageCode: String = "en-US")
+    fun startListening()
     fun stopListening()
 }
 

@@ -2,6 +2,7 @@ package org.ailingo.app.features.dictionary.main.presentation
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.definitions
+import ailingo.composeapp.generated.resources.loadingstate
 import ailingo.composeapp.generated.resources.no_definitions
 import ailingo.composeapp.generated.resources.usage_examples
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -89,7 +90,7 @@ fun DictionaryScreen(
 
                     is UiState.Loading -> {
                         item {
-                            LoadingScreen(modifier = Modifier.fillMaxSize())
+                            LoadingScreen(modifier = Modifier.fillMaxSize(), image = Res.drawable.loadingstate)
                         }
                     }
 
@@ -120,7 +121,7 @@ fun DictionaryScreen(
 
                 is UiState.Idle -> {}
                 is UiState.Loading -> {
-                    item { LoadingScreen(modifier = Modifier.fillMaxSize()) }
+                    item { LoadingScreen(modifier = Modifier.fillMaxSize(), image = Res.drawable.loadingstate) }
                 }
 
                 is UiState.Success -> {

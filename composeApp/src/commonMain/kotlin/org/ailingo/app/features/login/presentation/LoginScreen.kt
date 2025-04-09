@@ -88,15 +88,8 @@ fun LoginScreen(
         }
     }
 
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column {
             Text(
                 stringResource(Res.string.login),
                 style = MaterialTheme.typography.headlineLarge,
@@ -162,23 +155,22 @@ fun LoginScreen(
                 }
             }
             VerticalSpacer(32.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                modifier = Modifier.padding(bottom = 32.dp)
+            ) {
+                Text(
+                    stringResource(Res.string.dont_have_an_account)
+                )
+                Text(
+                    stringResource(Res.string.sign_up),
+                    modifier = Modifier.clickable {
+                        onNavigateToRegisterScreen()
+                    },
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
-    }
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.Bottom,
-        modifier = Modifier.fillMaxSize().padding(bottom = 32.dp)
-    ) {
-        Text(
-            stringResource(Res.string.dont_have_an_account)
-        )
-        Text(
-            stringResource(Res.string.sign_up),
-            modifier = Modifier.clickable {
-                onNavigateToRegisterScreen()
-            },
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 
