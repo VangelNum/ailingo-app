@@ -2,7 +2,7 @@ package org.ailingo.app.features.favouritewords.presentation
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.empty_favourite_words
-import ailingo.composeapp.generated.resources.emptyscreen
+import ailingo.composeapp.generated.resources.emptystate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,7 +49,7 @@ fun FavouriteScreen(
 
         is UiState.Success -> {
             if (favouriteWordsState.data.isEmpty()) {
-                EmptyScreen(text = Res.string.empty_favourite_words, modifier = Modifier.fillMaxSize(), image = Res.drawable.emptyscreen)
+                EmptyScreen(text = Res.string.empty_favourite_words, modifier = Modifier.fillMaxSize(), image = Res.drawable.emptystate)
             } else {
                 FavouriteWordsContent(favouriteWordsState.data, onNavigateToDictionaryScreen = {
                     onNavigateToDictionaryScreen(it)

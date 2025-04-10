@@ -1,9 +1,10 @@
 package org.ailingo.app.features.dictionary.examples.data.repository
 
-import AiLingo.composeApp.BuildConfig.BASE_URL_FREE_DICTIONARY
+import AiLingo.composeApp.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.ailingo.app.core.presentation.UiState
@@ -18,8 +19,9 @@ class DictionaryExampleRepositoryImpl(
     override fun getExamples(word: String): Flow<UiState<List<WordInfoItem>>> = flow {
         emit(UiState.Loading())
         try {
-            val response = httpClient.get("$BASE_URL_FREE_DICTIONARY/$word")
-                .body<List<WordInfoItem>>()
+            val response = httpClient.get("$BASE_URL/api/v1/dictionary/define") {
+                parameter("word", word)
+            }.body<List<WordInfoItem>>()
             emit(UiState.Success(response))
         } catch (e: Exception) {
             emit(UiState.Error(errorMapper.mapError(e)))

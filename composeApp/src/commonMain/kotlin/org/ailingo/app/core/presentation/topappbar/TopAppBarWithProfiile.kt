@@ -5,6 +5,7 @@ import ailingo.composeapp.generated.resources.ailingologowithoutbackground
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
 import ailingo.composeapp.generated.resources.logo
+import ailingo.composeapp.generated.resources.maskot
 import ailingo.composeapp.generated.resources.streak
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -111,6 +112,12 @@ fun TopAppBarWithProfile(
                                 .padding(4.dp).padding(start = 2.dp).padding(end = 2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Image(
+                                painter = painterResource(Res.drawable.maskot),
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             if (loginState.user.avatar?.isNotEmpty() == true) {
                                 Box(
                                     contentAlignment = Alignment.Center

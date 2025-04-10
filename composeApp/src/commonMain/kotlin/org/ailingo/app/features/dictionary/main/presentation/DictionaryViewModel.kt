@@ -91,13 +91,17 @@ class DictionaryViewModel(
     }
 
     private fun getWordInfo(word: String?) {
-        if (word != null && word != "") {
+        if (!word.isNullOrBlank()) {
             viewModelScope.launch {
-                dictionaryRepository.getWordInfo(word).collect { state ->
-                    _dictionaryUiState.update { state }
+                launch {
+                    exampleRepository.getExamples(word).collect { state ->
+                        _examplesUiState.update { state }
+                    }
                 }
-                exampleRepository.getExamples(word).collect { state ->
-                    _examplesUiState.update { state }
+                launch {
+                    dictionaryRepository.getWordInfo(word).collect { state ->
+                        _dictionaryUiState.update { state }
+                    }
                 }
             }
         }

@@ -238,7 +238,6 @@ buildConfig {
         "dict.1.1.20231102T140345Z.9979700cf66f91d0.b210308b827953080f07e8f2e12779e2486d2695"
     )
     buildConfigField("BASE_URL_YANEX_DICTIONARY", "https://dictionary.yandex.net/api/v1/dicservice.json/lookup")
-    buildConfigField("BASE_URL_FREE_DICTIONARY", "https://api.dictionaryapi.dev/api/v2/entries/en")
     buildConfigField("PREDICTOR_BASE_URL", "https://api.typewise.ai/latest/completion/complete")
     buildConfigField("BASE_URL_UPLOAD_IMAGE", "https://api.imgbb.com/1/upload")
     buildConfigField("UPLOAD_IMAGE_KEY", "f90248ad8f4b1e262a5e8e7603645cc1")

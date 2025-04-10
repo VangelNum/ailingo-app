@@ -42,5 +42,3 @@ private fun encodeFileToBase64(file: File): String {
     val fileContent = Files.readAllBytes(file.toPath())
     return Base64.getEncoder().encodeToString(fileContent)
 }
-
-

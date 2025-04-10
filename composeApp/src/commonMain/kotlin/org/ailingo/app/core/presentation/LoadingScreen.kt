@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +24,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 private const val PADDING_PERCENTAGE_OUTER_CIRCLE = 0.15f
 private const val PADDING_PERCENTAGE_INNER_CIRCLE = 0.3f
@@ -35,6 +39,8 @@ fun LoadingScreen(
     loadingText: String? = null,
     contentAlignment: Alignment = Alignment.Center,
     textAlign: TextAlign = TextAlign.Center,
+    image: DrawableResource? = null,
+    imageSize: Dp? = null,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "infinity_loading_animation")
@@ -97,6 +103,9 @@ fun LoadingScreen(
                             rotationZ = rotation + POSITION_START_OFFSET_OUTER_CIRCLE
                         }
                 )
+            }
+            if (image != null) {
+                Image(painter = painterResource(image), contentDescription = null, modifier = Modifier.size(imageSize ?: 100.dp))
             }
             if (loadingText != null) {
                 Text(loadingText, textAlign = textAlign)

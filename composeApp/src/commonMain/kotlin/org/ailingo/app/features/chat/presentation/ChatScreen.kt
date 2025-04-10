@@ -1,9 +1,13 @@
 package org.ailingo.app.features.chat.presentation
 
 import ailingo.composeapp.generated.resources.Res
+import ailingo.composeapp.generated.resources.defaultProfilePhoto
+import ailingo.composeapp.generated.resources.maskot
 import ailingo.composeapp.generated.resources.message
 import ailingo.composeapp.generated.resources.send_message
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,8 +23,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -41,7 +47,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import coil3.compose.AsyncImage
@@ -56,6 +66,7 @@ import org.ailingo.app.features.chat.data.model.Conversation
 import org.ailingo.app.features.chat.presentation.model.MessageType
 import org.ailingo.app.getPlatformName
 import org.ailingo.app.theme.AppTheme
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -66,12 +77,21 @@ fun ChatScreen(
     chatUiState: UiState<MutableList<Conversation>>,
     messagesState: List<Conversation>,
     onEvent: (ChatEvents) -> Unit,
+    userAvatar: String? = null
 ) {
     var messageInput by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val voiceToTextHandler = rememberVoiceToTextHandler()
     val voiceState by voiceToTextHandler.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    fun sendMessage() {
+        messageInput = messageInput.trim()
+        if (messageInput.isNotBlank()) {
+            onEvent(ChatEvents.OnSendMessage(messageInput))
+            messageInput = ""
+        }
+    }
 
     LaunchedEffect(voiceState) {
         if (voiceState is VoiceToTextState.Result) {
@@ -133,7 +153,7 @@ fun ChatScreen(
                 state = listState
             ) {
                 items(messagesState) { message ->
-                    ChatMessageItem(message = message)
+                    ChatMessageItem(message = message, userAvatar = userAvatar)
                 }
                 when (chatUiState) {
                     is UiState.Error -> {
@@ -141,12 +161,14 @@ fun ChatScreen(
                             ChatMessageItem(message = Conversation(id = "", conversationId = "", content = chatUiState.message, timestamp = "", type = MessageType.BOT.name))
                         }
                     }
+
                     is UiState.Idle -> {}
                     is UiState.Loading -> {
                         item {
                             ChatMessageItem(message = Conversation(id = "", conversationId = "", content = "Waiting for response...", timestamp = "", type = MessageType.BOT.name))
                         }
                     }
+
                     is UiState.Success -> {}
                 }
             }
@@ -160,12 +182,22 @@ fun ChatScreen(
                 OutlinedTextField(
                     value = messageInput,
                     onValueChange = { messageInput = it },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .onKeyEvent { event ->
+                            if (event.key == Key.Enter && chatUiState !is UiState.Loading) {
+                                sendMessage()
+                                return@onKeyEvent true
+                            }
+                            false
+                        },
                     placeholder = { Text(stringResource(Res.string.message)) },
                     shape = RoundedCornerShape(32.dp),
                     maxLines = 3,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     trailingIcon = {
-                        if (getPlatformName() != PlatformName.Web) {
+                        //TODO ON DESKTOP
+                        if (getPlatformName() != PlatformName.Desktop) {
                             IconButton(onClick = {
                                 if (voiceToTextHandler.isAvailable) {
                                     coroutineScope.launch {
@@ -173,12 +205,16 @@ fun ChatScreen(
                                             voiceToTextHandler.stopListening()
                                         } else {
                                             messageInput = ""
-                                            voiceToTextHandler.startListening("en-US")
+                                            voiceToTextHandler.startListening()
                                         }
                                     }
                                 }
                             }) {
-                                Icon(imageVector = Icons.Filled.Mic, contentDescription = "mic")
+                                if (voiceState is VoiceToTextState.Listening) {
+                                    Icon(imageVector = Icons.Filled.Mic, contentDescription = "mic")
+                                } else {
+                                    Icon(imageVector = Icons.Filled.MicOff, contentDescription = "mic")
+                                }
                             }
                         }
                     }
@@ -186,10 +222,7 @@ fun ChatScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(
                     onClick = {
-                        if (messageInput.isNotBlank()) {
-                            onEvent(ChatEvents.OnSendMessage(messageInput))
-                            messageInput = ""
-                        }
+                        sendMessage()
                     },
                     enabled = chatUiState !is UiState.Loading,
                     modifier = Modifier.height(OutlinedTextFieldDefaults.MinHeight),
@@ -203,52 +236,98 @@ fun ChatScreen(
 }
 
 @Composable
-fun ChatMessageItem(message: Conversation) {
-
-    val alignment = if (message.type == MessageType.USER.name) Alignment.End else Alignment.Start
-    val backgroundColor = if (message.type == MessageType.USER.name) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
-
+fun ChatMessageItem(message: Conversation, userAvatar: String? = null) {
+    val isUserMessage = message.type == MessageType.USER.name
+    val backgroundColor = if (isUserMessage) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.secondaryContainer
+    }
+    val horizontalAlignment = if (isUserMessage) Alignment.End else Alignment.Start
+    val startPadding = if (isUserMessage) 52.dp else 0.dp
+    val endPadding = if (isUserMessage) 0.dp else 52.dp
+    val timestampStartPadding = if (isUserMessage) 0.dp else 8.dp
+    val timestampEndPadding = if (isUserMessage) 8.dp else 0.dp
+    val imageSize = 32.dp
     Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalAlignment = alignment
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = horizontalAlignment
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
             color = backgroundColor,
             modifier = Modifier.padding(
                 PaddingValues(
-                    start = if (message.type == MessageType.USER.name) 52.dp else 0.dp,
+                    start = startPadding,
                     top = 0.dp,
-                    end = if (message.type == MessageType.USER.name) 0.dp else 52.dp,
+                    end = endPadding,
                     bottom = 4.dp
                 )
             )
         ) {
-            Text(
-                text = message.content,
-                modifier = Modifier.padding(8.dp)
-            )
+            Column {
+                if (isUserMessage) {
+                    if (userAvatar != null) {
+                        Card(
+                            shape = CircleShape,
+                            modifier = Modifier.align(Alignment.End).padding(end = 4.dp, top = 4.dp),
+                        ) {
+                            AsyncImage(
+                                model = userAvatar,
+                                null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(imageSize)
+                            )
+                        }
+                    } else {
+                        Card(
+                            shape = CircleShape,
+                            modifier = Modifier.align(Alignment.End).padding(end = 4.dp, top = 4.dp),
+                        ) {
+                            Image(
+                                painter = painterResource(Res.drawable.defaultProfilePhoto),
+                                modifier = Modifier.size(imageSize),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                } else {
+                    Box(modifier = Modifier.padding(4.dp)) {
+                        Image(
+                            painter = painterResource(Res.drawable.maskot),
+                            modifier = Modifier.size(imageSize),
+                            contentDescription = null
+                        )
+                    }
+                }
+                Text(
+                    text = message.content,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, end = 8.dp, top = 4.dp)
+                )
+            }
         }
-        val timestampString = message.timestamp
-        var displayTimestamp: String
-        if (timestampString.contains("T") && timestampString.length > timestampString.indexOf("T") + 5) {
-            val datePart = timestampString.substringBefore('T')
-            val timePart = timestampString.substringAfter('T').substring(0, 5)
-            displayTimestamp = "$datePart $timePart".trim()
-        } else {
-            displayTimestamp = ""
-        }
+        val displayTimestamp = formatTimestamp(message.timestamp)
+
         Text(
             text = displayTimestamp,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             modifier = Modifier.padding(
-                start = if (message.type == MessageType.USER.name) 0.dp else 8.dp,
-                end = if (message.type == MessageType.USER.name) 8.dp else 0.dp,
+                start = timestampStartPadding,
+                end = timestampEndPadding,
                 bottom = 8.dp
             )
         )
+    }
+}
+
+fun formatTimestamp(timestampString: String): String {
+    return if (timestampString.contains("T") && timestampString.length > timestampString.indexOf("T") + 5) {
+        val datePart = timestampString.substringBefore('T')
+        val timePart = timestampString.substringAfter('T').substring(0, 5)
+        "$datePart $timePart".trim()
+    } else {
+        ""
     }
 }
 

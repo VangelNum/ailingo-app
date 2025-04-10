@@ -121,7 +121,7 @@ fun ProfileContent(
     val adaptiveInfo = currentWindowAdaptiveInfo()
 
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = modifier.verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ProfileHeader(loginUiState)
