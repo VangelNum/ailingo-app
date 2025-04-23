@@ -32,7 +32,7 @@ val repositoryModule = module {
         TopicRepositoryImpl(get(), get())
     }
     single<LoginRepository> {
-        LoginRepositoryImpl(get(), get(), get(named("tokenRepository")))
+        LoginRepositoryImpl(get(), get(), get(named("authRepository")))
     }
     single<FavouriteWordsRepository> {
         FavouriteWordsRepositoryImpl(get(), get())

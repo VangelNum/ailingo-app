@@ -1,6 +1,5 @@
 package org.ailingo.app.features.registration.data.repository
 
-import AiLingo.composeApp.BuildConfig.API_ENDPOINT_USER
 import AiLingo.composeApp.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -13,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.di.ErrorMapper
-import org.ailingo.app.features.jwt.data.model.AuthResponse
+import org.ailingo.app.features.basicauth.data.model.AuthResponse
 import org.ailingo.app.features.registration.data.model.EmailVerifyRequest
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository
 
@@ -22,10 +21,11 @@ class VerifyEmailRepositoryImpl(
     private val errorParser: ErrorMapper
 ) : VerifyEmailRepository {
 
-    override fun verifyEmail(email: String, verificationCode: String): Flow<UiState<AuthResponse>> = flow {
+    override fun verifyEmail(email: String, verificationCode: String): Flow<UiState<AuthResponse>> =
+        flow {
             emit(UiState.Loading())
             try {
-                val response = httpClient.post("$BASE_URL$API_ENDPOINT_USER/verifyEmail") {
+                val response = httpClient.post("$BASE_URL/api/v1/user/verify-email") {
                     contentType(ContentType.Application.Json)
                     setBody(EmailVerifyRequest(email, verificationCode))
                 }

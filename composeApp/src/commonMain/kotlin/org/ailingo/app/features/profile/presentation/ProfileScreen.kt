@@ -61,16 +61,15 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
+import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.login.data.model.User
-import org.ailingo.app.features.login.presentation.LoginUiState
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ProfileScreen(
-    loginState: LoginUiState,
+    loginState: UiState<User>,
     onExit: () -> Unit,
     onNavigateProfileChange: (
         name: String,
@@ -80,33 +79,33 @@ fun ProfileScreen(
 ) {
 
     when (loginState) {
-        is LoginUiState.Error -> {
+        is UiState.Error -> {
             ErrorScreen(
                 errorMessage = loginState.message,
                 modifier = Modifier.fillMaxSize()
             )
         }
 
-        LoginUiState.Loading -> {
+        is UiState.Loading -> {
             LoadingScreen(modifier = Modifier.fillMaxSize())
         }
 
-        is LoginUiState.Success -> {
+        is UiState.Success -> {
             ProfileContent(
                 modifier = Modifier.fillMaxSize(),
-                user = loginState.user,
+                user = loginState.data,
                 onExit = onExit,
                 onNavigateProfileChange = {
                     onNavigateProfileChange(
-                        loginState.user.name,
-                        loginState.user.email,
-                        loginState.user.avatar
+                        loginState.data.name,
+                        loginState.data.email,
+                        loginState.data.avatar
                     )
                 }
             )
         }
 
-        LoginUiState.Unauthenticated -> {
+        is UiState.Idle -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -149,7 +148,7 @@ fun ProfileContent(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "@${user.login}",
+                text = "@${user.name}",
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -235,7 +234,8 @@ fun ProfileAvatar(avatarUrl: String?, size: Dp) {
         when (state) {
             is AsyncImagePainter.State.Loading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier.fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(size * 0.4f))
@@ -380,7 +380,12 @@ fun ProfileActions(
             modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
             shape = RoundedCornerShape(50),
             border = ButtonDefaults.outlinedButtonBorder().copy(
-                brush = Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.outline, MaterialTheme.colorScheme.outline))
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.outline,
+                        MaterialTheme.colorScheme.outline
+                    )
+                )
             ),
         ) {
             Icon(
@@ -391,35 +396,5 @@ fun ProfileActions(
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(stringResource(Res.string.exit))
         }
-    }
-}
-
-@Preview
-@Composable
-fun ProfileScreenPreview() {
-    MaterialTheme {
-        val mockUser = User(
-            id = "1",
-            login = "ailinger",
-            email = "preview.user@ailingo.app",
-            name = "Ailingo User",
-            avatar = null, // Test default avatar state
-            // avatar = "https://example.com/some_image.jpg",
-            coins = 1234,
-            streak = 15,
-            xp = 5678,
-            registration = "2023-10-26T10:00:00Z",
-            lastLoginAt = "2024-03-15T12:30:00Z",
-            isEmailVerified = true,
-            role = "user",
-            lastStreakAt = "2023-10-26T10:00:00Z"
-        )
-        val loginState = LoginUiState.Success(mockUser, token = "fake_token", refreshToken = "fake_refresh")
-
-        ProfileScreen(
-            loginState = loginState,
-            onExit = { println("Preview Exit Clicked") },
-            onNavigateProfileChange = { _, _, _ -> println("Preview Change Data Clicked") }
-        )
     }
 }

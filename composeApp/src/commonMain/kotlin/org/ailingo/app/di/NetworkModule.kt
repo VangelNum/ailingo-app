@@ -1,6 +1,5 @@
 package org.ailingo.app.di
 
-import AiLingo.composeApp.BuildConfig.BASE_URL
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.connection_timeout
 import ailingo.composeapp.generated.resources.could_not_connect
@@ -20,36 +19,18 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
 import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.request
-import io.ktor.client.request.setBody
-import io.ktor.client.request.takeFrom
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.HttpResponseContainer
-import io.ktor.client.statement.HttpResponsePipeline
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.AttributeKey
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.ailingo.app.core.presentation.navigation.NavigationController
-import org.ailingo.app.core.presentation.navigation.NavigationEvent
-import org.ailingo.app.core.presentation.snackbar.SnackbarController
-import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
-import org.ailingo.app.features.jwt.data.model.RefreshTokenRequest
-import org.ailingo.app.features.jwt.data.model.RefreshTokenResponse
-import org.ailingo.app.features.jwt.domain.repository.TokenRepository
+import org.ailingo.app.features.basicauth.domain.repository.AuthRepository
 import org.jetbrains.compose.resources.getString
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -70,19 +51,12 @@ val networkModule = module {
                 connectTimeoutMillis = 15000
             }
             install(AuthTokenInterceptor) {
-                tokenRepository = get(named("tokenRepository"))
-                allowedBaseUrls = listOf(
-                    "http://localhost:8080/ailingo",
-                    "http://localhost:8081/ailingo",
-                    "https://app.artux.net/ailingo"
-                )
+                authRepository = get(named("authRepository"))
                 excludedPaths = listOf(
-                    "/ailingo/api/v1/user/login" to HttpMethod.Post,
-                    "/ailingo/api/v1/user/info" to HttpMethod.Get,
-                    "/ailingo/api/v1/user/register" to HttpMethod.Post,
-                    "/ailingo/api/v1/user/verifyEmail" to HttpMethod.Post,
-                    "/ailingo/api/v1/user/refreshToken" to HttpMethod.Post,
-                    "/ailingo/api/v1/user/resendVerificationCode" to HttpMethod.Post
+                    "/api/v1/user/me" to HttpMethod.Get,
+                    "/api/v1/user/register" to HttpMethod.Post,
+                    "/api/v1/user/verify-email" to HttpMethod.Post,
+                    "/api/v1/user/resend-verification-code" to HttpMethod.Post
                 )
             }
         }
@@ -90,11 +64,15 @@ val networkModule = module {
 
     single<ErrorMapper> {
         object : ErrorMapper {
-            override suspend fun mapError(throwable: Throwable?, httpResponse: HttpResponse?): String {
+            override suspend fun mapError(
+                throwable: Throwable?,
+                httpResponse: HttpResponse?
+            ): String {
                 if (httpResponse != null && !httpResponse.status.isSuccess()) {
                     return try {
                         val errorBody = httpResponse.body<JsonObject>()
-                        errorBody["message"]?.jsonPrimitive?.content ?: getString(Res.string.unexpected_error)
+                        errorBody["message"]?.jsonPrimitive?.content
+                            ?: getString(Res.string.unexpected_error)
                     } catch (e: Exception) {
                         e.printStackTrace()
                         getString(Res.string.unexpected_error)
@@ -117,13 +95,11 @@ interface ErrorMapper {
 
 class AuthTokenInterceptor(config: Config) {
 
-    private val tokenRepository = config.tokenRepository
-    private val allowedBaseUrls = config.allowedBaseUrls
+    private val authRepository = config.authRepository
     private val excludedPaths = config.excludedPaths
 
     class Config {
-        lateinit var tokenRepository: Deferred<TokenRepository>
-        var allowedBaseUrls: List<String> = listOf()
+        lateinit var authRepository: Deferred<AuthRepository>
         var excludedPaths: List<Pair<String, HttpMethod>> = listOf()
     }
 
@@ -136,88 +112,21 @@ class AuthTokenInterceptor(config: Config) {
 
         override fun install(plugin: AuthTokenInterceptor, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                if (!plugin.isTokenRequired(context)) {
-                    proceed()
-                    return@intercept
-                }
                 if (plugin.isPathExcluded(context)) {
                     proceed()
                     return@intercept
                 }
 
-                val tokens = plugin.tokenRepository.await().getTokens()
-                Logger.i("Tokens retrieved: $tokens")
-                if (tokens != null) {
-                    context.header(HttpHeaders.Authorization, "Bearer ${tokens.token}")
+                val credentials = plugin.authRepository.await().getBasicAuth()
+                if (credentials != null) {
+                    context.header(HttpHeaders.Authorization, "Basic $credentials")
+                    Logger.i("Basic Auth added")
                 } else {
-                    Logger.i("Tokens are null, Authorization header not added.")
+                    Logger.i("Basic Auth header empty")
                 }
                 proceed()
             }
-            scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
-                val originalResponse = context.response
-                if (originalResponse.status == HttpStatusCode.Forbidden) {
-                    Logger.i("Received 403/Forbidden, attempting to refresh token")
-                    val refreshedTokens = plugin.refreshToken(plugin.tokenRepository.await(), scope)
-                    if (refreshedTokens != null) {
-                        val retryResponse: HttpResponse = context.client.request {
-                            takeFrom(context.request)
-                            headers.remove(HttpHeaders.Authorization)
-                            header(HttpHeaders.Authorization, "Bearer ${refreshedTokens.accessToken}")
-                        }
-                        val newSubject = HttpResponseContainer(subject.expectedType, retryResponse)
-                        proceedWith(newSubject)
-                    } else {
-                        CoroutineScope(Dispatchers.Main.immediate).launch {
-                            SnackbarController.sendEvent(
-                                event = SnackbarEvent(
-                                    message = "Token refresh failed, need to re-login",
-                                )
-                            )
-                        }
-                        NavigationController.sendNavigationEvent(NavigationEvent.NavigateToLogin)
-                        Logger.i("Token refresh failed, user needs to re-login")
-                    }
-                } else {
-                    proceed()
-                }
-            }
         }
-    }
-
-    private suspend fun refreshToken(tokenRepository: TokenRepository, httpClient: HttpClient): RefreshTokenResponse? {
-        val currentRefreshToken = tokenRepository.getTokens()?.refreshToken
-        if (currentRefreshToken == null) {
-            Logger.i("No refresh token found")
-            return null
-        }
-
-        return try {
-            val refreshResponse: HttpResponse = httpClient.post("$BASE_URL/api/v1/user/refreshToken") {
-                contentType(ContentType.Application.Json)
-                setBody(RefreshTokenRequest(refreshToken = currentRefreshToken))
-            }
-
-            if (refreshResponse.status.isSuccess()) {
-                val authResponse = refreshResponse.body<RefreshTokenResponse>()
-                tokenRepository.saveTokens(RefreshTokenResponse(authResponse.accessToken, authResponse.refreshToken))
-                Logger.i("New tokens saved successfully.")
-                authResponse
-            } else {
-                Logger.i("Refresh token request failed with status: ${refreshResponse.status}")
-                tokenRepository.deleteTokens()
-                null
-            }
-        } catch (e: Exception) {
-            Logger.i("Error during refresh token request: ${e.message}")
-            tokenRepository.deleteTokens()
-            null
-        }
-    }
-
-    private fun isTokenRequired(request: HttpRequestBuilder): Boolean {
-        val url = request.url.toString()
-        return allowedBaseUrls.any { url.startsWith(it) }
     }
 
     private fun isPathExcluded(request: HttpRequestBuilder): Boolean {

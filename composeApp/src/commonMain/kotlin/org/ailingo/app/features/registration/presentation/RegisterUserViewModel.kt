@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
-import org.ailingo.app.features.jwt.data.model.AuthResponse
+import org.ailingo.app.features.basicauth.data.model.AuthResponse
 import org.ailingo.app.features.registration.data.model.RegistrationRequest
 import org.ailingo.app.features.registration.domain.repository.RegisterRepository
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository

@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class User(
-    val id: String,
-    val login: String,
+    val id: Int,
     val name: String,
+    val password: String,
     val email: String,
     val avatar: String?,
-    val xp: Int,
-    val coins: Int,
-    val streak: Int,
-    val registration: String? = null,
-    val lastLoginAt: String,
-    val isEmailVerified: Boolean,
     val role: String,
-    val lastStreakAt: String
+    val coins: Int,
+    val xp: Int,
+    val streak: Int,
+    val verificationCode: String?,
+    val isEmailVerified: Boolean?,
+    val registrationTime: String,
+    val lastLoginTime: String
 )

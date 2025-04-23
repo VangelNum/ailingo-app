@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
-import org.ailingo.app.features.jwt.data.model.AuthResponse
+import org.ailingo.app.features.basicauth.data.model.AuthResponse
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

@@ -1,4 +1,4 @@
-package org.ailingo.app.features.jwt.data.model
+package org.ailingo.app.features.basicauth.data.model
 
 import kotlinx.serialization.Serializable
 import org.ailingo.app.features.login.data.model.User

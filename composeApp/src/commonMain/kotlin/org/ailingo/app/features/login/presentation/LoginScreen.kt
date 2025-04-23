@@ -50,17 +50,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.SmallLoadingIndicator
+import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.core.presentation.custom.CustomTextField
 import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
 import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
+import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.getPlatformName
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LoginScreen(
-    loginState: LoginUiState,
+    loginState: UiState<User>,
     onNavigateToHomeScreen: () -> Unit,
     onNavigateToRegisterScreen: () -> Unit,
     onEvent: (LoginScreenEvent) -> Unit
@@ -73,7 +75,7 @@ fun LoginScreen(
     val focusRequesterPassword = remember { FocusRequester() }
 
     LaunchedEffect(loginState) {
-        if (loginState is LoginUiState.Error) {
+        if (loginState is UiState.Error) {
             scope.launch {
                 SnackbarController.sendEvent(
                     event = SnackbarEvent(
@@ -83,7 +85,7 @@ fun LoginScreen(
             }
             onEvent(LoginScreenEvent.OnBackToEmptyState)
         }
-        if (loginState is LoginUiState.Success) {
+        if (loginState is UiState.Success) {
             onNavigateToHomeScreen()
         }
     }
@@ -148,13 +150,13 @@ fun LoginScreen(
                     .defaultMinSize(
                         minHeight = OutlinedTextFieldDefaults.MinHeight,
                     ).then(if (getPlatformName() == PlatformName.Android) Modifier.fillMaxWidth() else Modifier.defaultMinSize(minWidth = OutlinedTextFieldDefaults.MinWidth)),
-                enabled = loginState !is LoginUiState.Loading
+                enabled = loginState !is UiState.Loading
             ) {
                 Text(
                     stringResource(Res.string.log_in),
                     style = MaterialTheme.typography.titleLarge
                 )
-                if (loginState is LoginUiState.Loading) {
+                if (loginState is UiState.Loading) {
                     Spacer(modifier = Modifier.width(16.dp))
                     SmallLoadingIndicator()
                 }

@@ -225,22 +225,8 @@ allprojects {
 }
 
 buildConfig {
-//    FOR PROD
-    buildConfigField("BASE_URL", "https://ailingo-vangel.amvera.io/")
-
-//    FOR TESTING
-//    buildConfigField("BASE_URL", "http://localhost:8080/ailingo")
-
-    buildConfigField("API_ENDPOINT_USER", "/api/v1/user")
-    buildConfigField("API_ENDPOINT_TOPICS", "/api/v1/topics")
-    buildConfigField(
-        "API_KEY_DICTIONARY",
-        "dict.1.1.20231102T140345Z.9979700cf66f91d0.b210308b827953080f07e8f2e12779e2486d2695"
-    )
-    buildConfigField("BASE_URL_YANEX_DICTIONARY", "https://dictionary.yandex.net/api/v1/dicservice.json/lookup")
+    buildConfigField("BASE_URL", "https://ailingo-vangel.amvera.io")
     buildConfigField("PREDICTOR_BASE_URL", "https://api.typewise.ai/latest/completion/complete")
-    buildConfigField("BASE_URL_UPLOAD_IMAGE", "https://api.imgbb.com/1/upload")
-    buildConfigField("UPLOAD_IMAGE_KEY", "f90248ad8f4b1e262a5e8e7603645cc1")
 }
 
 sqldelight {

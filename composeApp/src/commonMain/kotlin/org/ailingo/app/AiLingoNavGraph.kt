@@ -39,7 +39,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
 import androidx.window.core.layout.WindowWidthSizeClass
-import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.core.presentation.navigation.NavigationHandler
@@ -55,7 +54,6 @@ import org.ailingo.app.features.favouritewords.presentation.FavouriteScreen
 import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewModel
 import org.ailingo.app.features.login.presentation.LoginScreen
 import org.ailingo.app.features.login.presentation.LoginScreenEvent
-import org.ailingo.app.features.login.presentation.LoginUiState
 import org.ailingo.app.features.login.presentation.LoginViewModel
 import org.ailingo.app.features.profile.presentation.ProfileScreen
 import org.ailingo.app.features.profileupdate.presentation.ProfileUpdateEvent
@@ -95,7 +93,8 @@ fun AiLingoNavGraph(
         }
     }
     NavigationHandler(navController = navController, loginViewModel = loginViewModel)
-    val navigationSuiteState = rememberNavigationSuiteScaffoldState(initialValue = NavigationSuiteScaffoldValue.Hidden)
+    val navigationSuiteState =
+        rememberNavigationSuiteScaffoldState(initialValue = NavigationSuiteScaffoldValue.Hidden)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -171,7 +170,12 @@ fun AiLingoNavGraph(
                                     contentDescription = null
                                 )
                             },
-                            label = { Text(stringResource(it.label), textAlign = TextAlign.Center) },
+                            label = {
+                                Text(
+                                    stringResource(it.label),
+                                    textAlign = TextAlign.Center
+                                )
+                            },
                             selected = currentDestination?.hasRoute(it.route::class) == true,
                             onClick = {
                                 navController.navigate(it.route) {
@@ -218,7 +222,8 @@ fun AiLingoNavGraph(
                     }
                     composable<TopicsPage> {
                         val topicsViewModel = koinViewModel<TopicViewModel>()
-                        val topicsUiState = topicsViewModel.topicState.collectAsStateWithLifecycle().value
+                        val topicsUiState =
+                            topicsViewModel.topicState.collectAsStateWithLifecycle().value
                         TopicsScreen(
                             topicsUiState = topicsUiState,
                             onTopicClick = { topicName, topicImage ->
@@ -233,15 +238,12 @@ fun AiLingoNavGraph(
                     }
                     composable<ChatPage> { backStackEntry ->
                         val args = backStackEntry.toRoute<ChatPage>()
-                        val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName) }
-                        val chatUiState = chatViewModel.chatState.collectAsStateWithLifecycle().value
-                        val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
-
-                        LaunchedEffect(chatUiState) {
-                            if (chatUiState is UiState.Idle) {
-                                loginViewModel.onEvent(LoginScreenEvent.RefreshUserInfo)
-                            }
-                        }
+                        val chatViewModel: ChatViewModel =
+                            koinViewModel { parametersOf(args.topicName) }
+                        val chatUiState =
+                            chatViewModel.chatState.collectAsStateWithLifecycle().value
+                        val messagesState =
+                            chatViewModel.messages.collectAsStateWithLifecycle().value
 
                         ChatScreen(
                             topicName = args.topicName,
@@ -254,13 +256,19 @@ fun AiLingoNavGraph(
                         )
                     }
                     composable<RegistrationPage> {
-                        val pendingRegistrationState = registerViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle().value
+                        val pendingRegistrationState =
+                            registerViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle().value
                         RegistrationScreen(
                             onNavigateToLoginPage = {
                                 navController.navigate(LoginPage)
                             },
                             onNavigateToVerifyEmail = { email, password ->
-                                navController.navigate(VerifyEmailPage(email = email, password = password))
+                                navController.navigate(
+                                    VerifyEmailPage(
+                                        email = email,
+                                        password = password
+                                    )
+                                )
                             },
                             pendingRegistrationState = pendingRegistrationState,
                             onEvent = { event ->
@@ -286,15 +294,21 @@ fun AiLingoNavGraph(
                         )
                     }
                     composable<ProfileUpdatePage> {
-                        if (loginState is LoginUiState.Success) {
+                        if (loginState is UiState.Success) {
                             val profileUpdateViewModel = koinViewModel<ProfileUpdateViewModel>()
-                            val profileUpdateUiState = profileUpdateViewModel.profileUpdateUiState.collectAsStateWithLifecycle().value
-                            val uploadAvatarState = profileUpdateViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
+                            val profileUpdateUiState =
+                                profileUpdateViewModel.profileUpdateUiState.collectAsStateWithLifecycle().value
+                            val uploadAvatarState =
+                                profileUpdateViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
                             ProfileUpdateScreen(
                                 profileUpdateUiState = profileUpdateUiState,
                                 uploadAvatarState = uploadAvatarState,
                                 onProfileUpdate = {
-                                    profileUpdateViewModel.onEvent(ProfileUpdateEvent.OnUpdateProfile(it))
+                                    profileUpdateViewModel.onEvent(
+                                        ProfileUpdateEvent.OnUpdateProfile(
+                                            it
+                                        )
+                                    )
                                 },
                                 onReLoginUser = { newLogin, currentPassword, newPassword, passwordChanged ->
                                     val passwordToUse = if (passwordChanged) {
@@ -313,18 +327,23 @@ fun AiLingoNavGraph(
                                 onBackToEmptyState = {
                                     profileUpdateViewModel.onEvent(ProfileUpdateEvent.OnBackToEmptyState)
                                 },
-                                name = loginState.user.name,
-                                email = loginState.user.email,
-                                avatar = loginState.user.avatar,
+                                name = loginState.data.name,
+                                email = loginState.data.email,
+                                avatar = loginState.data.avatar,
                                 onUploadNewAvatar = {
-                                    profileUpdateViewModel.onEvent(ProfileUpdateEvent.OnUploadAvatar(it))
+                                    profileUpdateViewModel.onEvent(
+                                        ProfileUpdateEvent.OnUploadAvatar(
+                                            it
+                                        )
+                                    )
                                 }
                             )
                         }
                     }
                     composable<FavouriteWordsPage> {
                         val favouriteWordsViewModel = koinViewModel<FavouriteWordsViewModel>()
-                        val favouriteWordsState = favouriteWordsViewModel.favoriteWords.collectAsStateWithLifecycle().value
+                        val favouriteWordsState =
+                            favouriteWordsViewModel.favoriteWords.collectAsStateWithLifecycle().value
                         FavouriteScreen(
                             favouriteWordsState = favouriteWordsState,
                             onNavigateToDictionaryScreen = { word ->
@@ -337,11 +356,16 @@ fun AiLingoNavGraph(
                     }
                     composable<DictionaryPage> { backStackEntry ->
                         val args = backStackEntry.toRoute<DictionaryPage>()
-                        val dictionaryViewModel: DictionaryViewModel = koinViewModel { parametersOf(args.word) }
-                        val dictionaryState = dictionaryViewModel.dictionaryUiState.collectAsStateWithLifecycle().value
-                        val searchHistoryState = dictionaryViewModel.historyOfDictionaryState.collectAsStateWithLifecycle().value
-                        val favoriteDictionaryState = dictionaryViewModel.favouriteWordsState.collectAsStateWithLifecycle().value
-                        val predictorState = dictionaryViewModel.predictorState.collectAsStateWithLifecycle().value
+                        val dictionaryViewModel: DictionaryViewModel =
+                            koinViewModel { parametersOf(args.word) }
+                        val dictionaryState =
+                            dictionaryViewModel.dictionaryUiState.collectAsStateWithLifecycle().value
+                        val searchHistoryState =
+                            dictionaryViewModel.historyOfDictionaryState.collectAsStateWithLifecycle().value
+                        val favoriteDictionaryState =
+                            dictionaryViewModel.favouriteWordsState.collectAsStateWithLifecycle().value
+                        val predictorState =
+                            dictionaryViewModel.predictorState.collectAsStateWithLifecycle().value
                         DictionaryScreen(
                             dictionaryState,
                             searchHistoryState,
@@ -354,7 +378,8 @@ fun AiLingoNavGraph(
                     }
                     composable<VerifyEmailPage> { backStack ->
                         val args = backStack.toRoute<VerifyEmailPage>()
-                        val registrationState = registerViewModel.registrationUiState.collectAsStateWithLifecycle().value
+                        val registrationState =
+                            registerViewModel.registrationUiState.collectAsStateWithLifecycle().value
                         val otpViewModel: OtpViewModel = koinViewModel<OtpViewModel>()
                         val otpState = otpViewModel.state.collectAsStateWithLifecycle().value
                         val focusRequesters = remember {
@@ -405,7 +430,12 @@ fun AiLingoNavGraph(
                             },
                             registrationState = registrationState,
                             onNavigateChatScreen = {
-                                loginViewModel.onEvent(LoginScreenEvent.OnLoginUser(args.email, args.password))
+                                loginViewModel.onEvent(
+                                    LoginScreenEvent.OnLoginUser(
+                                        args.email,
+                                        args.password
+                                    )
+                                )
                                 navController.navigate(ChatPage)
                             },
                             modifier = Modifier,

@@ -1,6 +1,5 @@
 package org.ailingo.app.features.registration.data.repository
 
-import AiLingo.composeApp.BuildConfig.API_ENDPOINT_USER
 import AiLingo.composeApp.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
@@ -22,7 +21,7 @@ class RegisterRepositoryImpl(
     override fun register(registrationRequest: RegistrationRequest): Flow<UiState<Unit>> = flow {
         emit(UiState.Loading())
         try {
-            val response = httpClient.post("$BASE_URL$API_ENDPOINT_USER/register") {
+            val response = httpClient.post("$BASE_URL/api/v1/user/register") {
                 contentType(ContentType.Application.Json)
                 setBody(registrationRequest)
             }

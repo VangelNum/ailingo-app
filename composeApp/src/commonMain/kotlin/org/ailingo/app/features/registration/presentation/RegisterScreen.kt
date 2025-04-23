@@ -41,7 +41,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +69,6 @@ import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
 import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
 import org.ailingo.app.features.registration.data.model.RegistrationRequest
 import org.ailingo.app.getPlatformName
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -126,7 +123,15 @@ fun RegistrationScreen(
             isLoginValid = login.length in 4..16 && password.isNotBlank()
 
             if (isNameValid && isEmailValid && isPasswordValid && isLoginValid) {
-                onEvent(RegistrationEvent.OnRegisterUser(RegistrationRequest(login, password, email, name)))
+                onEvent(
+                    RegistrationEvent.OnRegisterUser(
+                        RegistrationRequest(
+                            password,
+                            email,
+                            name
+                        )
+                    )
+                )
             }
         },
         pendingRegistrationState = pendingRegistrationState
@@ -272,7 +277,9 @@ fun RegistrationContent(
                     },
                     modifier = Modifier
                         .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight).then(
-                            if (getPlatformName() == PlatformName.Android) Modifier.fillMaxWidth() else Modifier.defaultMinSize(minWidth = OutlinedTextFieldDefaults.MinWidth)
+                            if (getPlatformName() == PlatformName.Android) Modifier.fillMaxWidth() else Modifier.defaultMinSize(
+                                minWidth = OutlinedTextFieldDefaults.MinWidth
+                            )
                         ),
                     enabled = pendingRegistrationState !is UiState.Loading,
                     shape = RoundedCornerShape(32.dp)
@@ -288,7 +295,10 @@ fun RegistrationContent(
                 }
                 VerticalSpacer(32.dp)
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        12.dp,
+                        Alignment.CenterHorizontally
+                    ),
                     modifier = if (getPlatformName() == PlatformName.Android) Modifier.fillMaxWidth() else Modifier
                 ) {
                     Text(

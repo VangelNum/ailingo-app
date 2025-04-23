@@ -1,6 +1,5 @@
 package org.ailingo.app.features.topics.data.repository
 
-import AiLingo.composeApp.BuildConfig.API_ENDPOINT_TOPICS
 import AiLingo.composeApp.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -19,11 +18,11 @@ import org.ailingo.app.features.topics.domain.repository.TopicRepository
 class TopicRepositoryImpl(
     private val httpClient: HttpClient,
     private val errorMapper: ErrorMapper
-): TopicRepository {
+) : TopicRepository {
     override fun getTopics(): Flow<UiState<List<Topic>>> = flow {
         emit(UiState.Loading())
         try {
-            val response = httpClient.get("$BASE_URL$API_ENDPOINT_TOPICS/getTopics") {
+            val response = httpClient.get("$BASE_URL/api/v1/topics/getTopics") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
             }
             if (response.status.isSuccess()) {
