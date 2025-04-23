@@ -27,7 +27,7 @@ jobs:
           cache: 'gradle'
 
       - name: Set up Gradle
-        uses: gradle/gradle-build-action@v4
+        uses: gradle/gradle-build-action@v3
         with:
           gradle-version: 8.10.2
 
@@ -35,7 +35,7 @@ jobs:
         run: ./gradlew :composeApp:wasmJsBrowserDistribution
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./composeApp/build/dist/wasmJs/productionExecutable
