@@ -1,6 +1,6 @@
 # Client of ailingo project
 # AiLingo
-Web demo: http://ailingo.artux.net/
+Web demo: https://vangelnum.github.io/ailingo-app
 
 ## Before running!
 - check your system with [KDoctor](https://github.com/Kotlin/kdoctor)
