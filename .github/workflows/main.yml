@@ -1,4 +1,4 @@
-name: Deploy Compose Web (Wasm) to GitHub Pages
+name: Deploy Compose Web (Wasm) to Netlify
 
 on:
   push:
@@ -10,10 +10,6 @@ jobs:
   deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
-
-    permissions:
-      pages: write
-      id-token: write
 
     steps:
       - name: Checkout Repository
@@ -37,9 +33,14 @@ jobs:
       - name: Build Wasm Browser Distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy to Netlify
+        uses: netlify/actions/cli@v1
         with:
-          github_token: ${{ secrets.PAT_FOR_DEPLOY }}
-          publish_dir: ./composeApp/build/dist/wasmJs/productionExecutable
-          publish_branch: gh-pages
+          publish-dir: ./composeApp/build/dist/wasmJs/productionExecutable
+          site-id: ${{ secrets.NETLIFY_SITE_ID }}
+          auth-token: ${{ secrets.NETIFY_AUTH_TOKEN }}
+          production-branch: main
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_FOR_DEPLOY }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
