@@ -1,5 +1,6 @@
 package org.ailingo.app.features.basicauth.data.repository
 
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import org.ailingo.app.AppDatabase
 import org.ailingo.app.features.basicauth.domain.repository.AuthRepository
 
@@ -18,7 +19,7 @@ class AuthRepositoryImpl(
     override suspend fun getBasicAuth(): String? {
         return authCredentialsQueries
             .getCredentials()
-            .executeAsOneOrNull()
+            .awaitAsOne()
     }
 
     override suspend fun deleteBasicAuth() {

@@ -50,12 +50,13 @@ val networkModule = module {
                 socketTimeoutMillis = 15000
                 connectTimeoutMillis = 15000
             }
-            install(AuthTokenInterceptor) {
+            install(AuthInterceptor) {
                 authRepository = get(named("authRepository"))
                 excludedPaths = listOf(
                     "/api/v1/user/me" to HttpMethod.Get,
                     "/api/v1/user/register" to HttpMethod.Post,
                     "/api/v1/user/verify-email" to HttpMethod.Post,
+                    "/api/v1/user/refresh-token" to HttpMethod.Post,
                     "/api/v1/user/resend-verification-code" to HttpMethod.Post
                 )
             }
@@ -64,15 +65,11 @@ val networkModule = module {
 
     single<ErrorMapper> {
         object : ErrorMapper {
-            override suspend fun mapError(
-                throwable: Throwable?,
-                httpResponse: HttpResponse?
-            ): String {
+            override suspend fun mapError(throwable: Throwable?, httpResponse: HttpResponse?): String {
                 if (httpResponse != null && !httpResponse.status.isSuccess()) {
                     return try {
                         val errorBody = httpResponse.body<JsonObject>()
-                        errorBody["message"]?.jsonPrimitive?.content
-                            ?: getString(Res.string.unexpected_error)
+                        errorBody["message"]?.jsonPrimitive?.content ?: getString(Res.string.unexpected_error)
                     } catch (e: Exception) {
                         e.printStackTrace()
                         getString(Res.string.unexpected_error)
@@ -93,7 +90,7 @@ interface ErrorMapper {
     suspend fun mapError(throwable: Throwable? = null, httpResponse: HttpResponse? = null): String
 }
 
-class AuthTokenInterceptor(config: Config) {
+class AuthInterceptor(config: Config) {
 
     private val authRepository = config.authRepository
     private val excludedPaths = config.excludedPaths
@@ -103,26 +100,26 @@ class AuthTokenInterceptor(config: Config) {
         var excludedPaths: List<Pair<String, HttpMethod>> = listOf()
     }
 
-    companion object Plugin : HttpClientPlugin<Config, AuthTokenInterceptor> {
-        override val key: AttributeKey<AuthTokenInterceptor> = AttributeKey("AuthTokenInterceptor")
+    companion object Plugin : HttpClientPlugin<Config, AuthInterceptor> {
+        override val key: AttributeKey<AuthInterceptor> = AttributeKey("AuthInterceptor")
 
-        override fun prepare(block: Config.() -> Unit): AuthTokenInterceptor {
-            return AuthTokenInterceptor(Config().apply(block))
+        override fun prepare(block: Config.() -> Unit): AuthInterceptor {
+            return AuthInterceptor(Config().apply(block))
         }
 
-        override fun install(plugin: AuthTokenInterceptor, scope: HttpClient) {
+        override fun install(plugin: AuthInterceptor, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 if (plugin.isPathExcluded(context)) {
                     proceed()
                     return@intercept
                 }
 
-                val credentials = plugin.authRepository.await().getBasicAuth()
-                if (credentials != null) {
-                    context.header(HttpHeaders.Authorization, "Basic $credentials")
-                    Logger.i("Basic Auth added")
+                val authInfo = plugin.authRepository.await().getBasicAuth()
+                Logger.i("Auth info retrieved: $authInfo")
+                if (authInfo != null) {
+                    context.header(HttpHeaders.Authorization, "Basic $authInfo")
                 } else {
-                    Logger.i("Basic Auth header empty")
+                    Logger.i("Auth info empty, Authorization header not added.")
                 }
                 proceed()
             }

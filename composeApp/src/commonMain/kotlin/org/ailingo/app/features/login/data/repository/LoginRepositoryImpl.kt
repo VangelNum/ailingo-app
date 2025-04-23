@@ -35,8 +35,8 @@ class LoginRepositoryImpl(
             val response: HttpResponse = httpClient.get("$BASE_URL/api/v1/user/me") {
                 header(HttpHeaders.Authorization, "Basic $encodedCredentials")
             }
-            authRepositoryDeferred.await().saveBasicAuth(encodedCredentials)
             if (response.status == HttpStatusCode.OK) {
+                authRepositoryDeferred.await().saveBasicAuth(encodedCredentials)
                 val user: User = response.body()
                 emit(UiState.Success(user))
             } else {
@@ -50,7 +50,11 @@ class LoginRepositoryImpl(
     override fun autoLogin(): Flow<UiState<User>> = flow {
         emit(UiState.Loading())
         try {
-            val credentials = authRepositoryDeferred.await().getBasicAuth() ?: return@flow
+            val credentials = authRepositoryDeferred.await().getBasicAuth()
+            if (credentials.isNullOrEmpty()) {
+                emit(UiState.Error("No saved credentials for auto-login"))
+                return@flow
+            }
             val response: HttpResponse = httpClient.get("$BASE_URL/api/v1/user/me") {
                 header(HttpHeaders.Authorization, "Basic $credentials")
             }
