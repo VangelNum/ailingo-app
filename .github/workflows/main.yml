@@ -34,7 +34,7 @@ jobs:
         run: ./gradlew :composeApp:wasmJsBrowserDistribution
 
       - name: Deploy to Netlify
-        uses: netlify/actions/cli@v1
+        uses: netlify/actions/cli@v0
         with:
           publish-dir: ./composeApp/build/dist/wasmJs/productionExecutable
           site-id: ${{ secrets.NETLIFY_SITE_ID }}
