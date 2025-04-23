@@ -50,7 +50,7 @@ class LoginRepositoryImpl(
     override fun autoLogin(): Flow<UiState<User>> = flow {
         emit(UiState.Loading())
         try {
-            val credentials = authRepositoryDeferred.await().getBasicAuth()
+            val credentials = authRepositoryDeferred.await().getBasicAuth() ?: return@flow
             val response: HttpResponse = httpClient.get("$BASE_URL/api/v1/user/me") {
                 header(HttpHeaders.Authorization, "Basic $credentials")
             }
