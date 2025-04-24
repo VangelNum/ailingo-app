@@ -101,7 +101,7 @@ fun RegistrationScreen(
             if (isNameValid && isEmailValid && isPasswordValid) {
                 onEvent(
                     RegistrationEvent.OnRegisterUser(
-                        RegistrationRequest(name = name, password = password, email = email)
+                        RegistrationRequest(name = name.trim(), password = password.trim(), email = email.trim())
                     )
                 )
             }
@@ -111,14 +111,13 @@ fun RegistrationScreen(
 
     LaunchedEffect(key1 = pendingRegistrationState) {
         if (pendingRegistrationState is UiState.Success) {
-            onNavigateToVerifyEmail(email.trim(), password.trim())
+            onNavigateToVerifyEmail(email.trim().lowercase(), password.trim())
         }
     }
 }
 
 @Composable
 fun RegistrationContent(
-    modifier: Modifier = Modifier,
     name: String,
     email: String,
     password: String,

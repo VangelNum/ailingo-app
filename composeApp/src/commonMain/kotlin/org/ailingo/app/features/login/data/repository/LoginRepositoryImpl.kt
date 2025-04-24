@@ -1,7 +1,6 @@
 package org.ailingo.app.features.login.data.repository
 
 import AiLingo.composeApp.BuildConfig.BASE_URL
-import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -11,7 +10,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.ailingo.app.core.presentation.UiState
@@ -25,7 +23,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 class LoginRepositoryImpl(
     private val httpClient: HttpClient,
     private val errorMapper: ErrorMapper,
-    private val authRepositoryDeferred: Deferred<AuthRepository>
+    private val authRepository: AuthRepository
 ) : LoginRepository {
     @OptIn(ExperimentalEncodingApi::class)
     override fun loginUser(login: String, password: String): Flow<UiState<User>> = flow {
@@ -37,7 +35,7 @@ class LoginRepositoryImpl(
                 header(HttpHeaders.Authorization, "Basic $encodedCredentials")
             }
             if (response.status == HttpStatusCode.OK) {
-                authRepositoryDeferred.await().saveBasicAuth(encodedCredentials)
+                authRepository.saveBasicAuth(encodedCredentials)
                 val user: User = response.body()
                 emit(UiState.Success(user))
             } else {
@@ -49,26 +47,19 @@ class LoginRepositoryImpl(
     }
 
     override fun autoLogin(): Flow<UiState<User>> = flow {
-        emit(UiState.Loading())
+        val credentials = authRepository.getBasicAuth() ?: return@flow
         try {
-            val credentials = authRepositoryDeferred.await().getBasicAuth()
-            Logger.i("credentials")
-            Logger.i(credentials.toString())
-            if (credentials.isNullOrEmpty()) {
-                return@flow
-            }
-            val response: HttpResponse = httpClient.get("$BASE_URL/api/v1/user/me") {
+            val response = httpClient.get("$BASE_URL/api/v1/user/me") {
                 header(HttpHeaders.Authorization, "Basic $credentials")
             }
             if (response.status == HttpStatusCode.OK) {
-                val user: User = response.body()
-                emit(UiState.Success(user))
+                emit(UiState.Success(response.body()))
             } else {
-                authRepositoryDeferred.await().deleteBasicAuth()
+                authRepository.deleteBasicAuth()
                 emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
             }
         } catch (e: Exception) {
-            authRepositoryDeferred.await().deleteBasicAuth()
+            authRepository.deleteBasicAuth()
             emit(UiState.Error(errorMapper.mapError(e)))
         }
     }

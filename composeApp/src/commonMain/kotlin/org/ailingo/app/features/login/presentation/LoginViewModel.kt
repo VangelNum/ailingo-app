@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -17,7 +16,7 @@ import org.ailingo.app.features.login.domain.repository.LoginRepository
 
 class LoginViewModel(
     private val loginRepository: LoginRepository,
-    private val authRepositoryDeferred: Deferred<AuthRepository>
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     private val _loginState = MutableStateFlow<UiState<User>>(UiState.Idle())
     val loginState = _loginState.asStateFlow()
@@ -25,11 +24,15 @@ class LoginViewModel(
     var login by mutableStateOf("")
     var password by mutableStateOf("")
 
+    init {
+        autoLogin()
+    }
+
     fun onEvent(event: LoginEvent) {
         when (event) {
             is LoginEvent.OnLoginUser -> loginUser(event.login, event.password)
             LoginEvent.OnBackToEmptyState -> backToEmptyState()
-            LoginEvent.OnAutoLogin -> autoLogin()
+            LoginEvent.OnRefreshUserInfo -> autoLogin()
         }
     }
 
@@ -54,8 +57,10 @@ class LoginViewModel(
 
     private fun backToEmptyState() {
         viewModelScope.launch {
-            authRepositoryDeferred.await().deleteBasicAuth()
+            authRepository.deleteBasicAuth()
         }
-        _loginState.value = UiState.Idle()
+        _loginState.update {
+            UiState.Idle()
+        }
     }
 }

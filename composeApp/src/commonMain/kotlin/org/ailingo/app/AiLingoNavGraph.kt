@@ -22,6 +22,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -210,16 +211,15 @@ fun AiLingoNavGraph(
                     composable<LoginPage> {
                         LoginScreen(
                             loginState = loginState, onNavigateToHomeScreen = {
-                                navController.navigate(TopicsPage)
+                                navController.navigate(TopicsPage) {
+                                    popUpTo(0)
+                                }
                             }, onNavigateToRegisterScreen = {
                                 navController.navigate(RegistrationPage)
                             }, onEvent = { event ->
                                 loginViewModel.onEvent(event)
                             }
                         )
-                        LaunchedEffect(Unit) {
-                            loginViewModel.onEvent(LoginEvent.OnAutoLogin)
-                        }
                     }
                     composable<TopicsPage> {
                         val topicsViewModel = koinViewModel<TopicViewModel>()
@@ -253,27 +253,6 @@ fun AiLingoNavGraph(
                             messagesState = messagesState,
                             onEvent = { event ->
                                 chatViewModel.onEvent(event)
-                            }
-                        )
-                    }
-                    composable<RegistrationPage> {
-                        val pendingRegistrationState = registrationViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle().value
-                        RegistrationScreen(
-                            onNavigateToLoginPage = {
-                                navController.navigate(LoginPage)
-                            },
-                            onNavigateToVerifyEmail = { email, password ->
-                                registrationViewModel.onEvent(RegistrationEvent.OnBackToEmptyState)
-                                navController.navigate(
-                                    VerifyEmailPage(
-                                        email = email,
-                                        password = password
-                                    )
-                                )
-                            },
-                            pendingRegistrationState = pendingRegistrationState,
-                            onEvent = { event ->
-                                registrationViewModel.onEvent(event)
                             }
                         )
                     }
@@ -377,6 +356,27 @@ fun AiLingoNavGraph(
                             }
                         )
                     }
+                    composable<RegistrationPage> {
+                        val pendingRegistrationState = registrationViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle().value
+                        RegistrationScreen(
+                            onNavigateToLoginPage = {
+                                navController.navigate(LoginPage)
+                            },
+                            onNavigateToVerifyEmail = { email, password ->
+                                registrationViewModel.onEvent(RegistrationEvent.OnBackToEmptyState)
+                                navController.navigate(
+                                    VerifyEmailPage(
+                                        email = email,
+                                        password = password
+                                    )
+                                )
+                            },
+                            pendingRegistrationState = pendingRegistrationState,
+                            onEvent = { event ->
+                                registrationViewModel.onEvent(event)
+                            }
+                        )
+                    }
                     composable<VerifyEmailPage> { backStack ->
                         val args = backStack.toRoute<VerifyEmailPage>()
                         val registrationState = registrationViewModel.registrationUiState.collectAsStateWithLifecycle().value
@@ -388,33 +388,30 @@ fun AiLingoNavGraph(
                                 registrationViewModel.onEvent(RegistrationEvent.OnVerifyEmail(args.email, code))
                             },
                             onNavigateToUpdateAvatar = {
-                                loginViewModel.onEvent(
-                                    LoginEvent.OnLoginUser(
-                                        args.email,
-                                        args.password
-                                    )
-                                )
-                                navController.navigate(UpdateAvatarPage) {
-                                    popUpTo(0)
-                                }
+                                loginViewModel.onEvent(LoginEvent.OnLoginUser(args.email, args.password))
                             },
                             onNavigateBack = {
                                 navController.navigate(RegistrationPage)
                             }
                         )
+
+                        LaunchedEffect(loginState) {
+                            if (loginState is UiState.Success) {
+                                navController.navigate(UpdateAvatarPage) {
+                                    popUpTo(0)
+                                }
+                            }
+                        }
                     }
                     composable<UpdateAvatarPage> { backStack ->
                         val updateAvatarViewModel = koinViewModel<UpdateAvatarViewModel>()
-                        val uploadAvatarState = updateAvatarViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
-                        val updateAvatarState = updateAvatarViewModel.updateAvatarState.collectAsStateWithLifecycle().value
-                        val generatedAvatarsState by updateAvatarViewModel.generatedAvatarsState.collectAsStateWithLifecycle()
-                        val selectedAvatarUrl by updateAvatarViewModel.selectedAvatarUrl.collectAsStateWithLifecycle()
-                        val locallySelectedBase64 by updateAvatarViewModel.locallySelectedBase64.collectAsStateWithLifecycle()
+                        val uploadAvatarState = updateAvatarViewModel.uploadAvatarState.collectAsState().value
+                        val updateAvatarState = updateAvatarViewModel.updateAvatarState.collectAsState().value
+                        val generatedAvatarsState by updateAvatarViewModel.generatedAvatarsState.collectAsState()
                         UpdateAvatarScreen(
                             uploadAvatarState = uploadAvatarState,
                             updateAvatarState = updateAvatarState,
                             generatedAvatarsState = generatedAvatarsState,
-                            selectedAvatarUrl = selectedAvatarUrl,
                             onEvent = { event ->
                                 updateAvatarViewModel.onEvent(event)
                             },
@@ -422,9 +419,15 @@ fun AiLingoNavGraph(
                                 navController.navigate(BunsPage) {
                                     popUpTo(0)
                                 }
-                            },
-                            locallySelectedBase64 = locallySelectedBase64
+                            }
                         )
+
+                        LaunchedEffect(updateAvatarState) {
+                            if (updateAvatarState is UiState.Success) {
+                                loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
+                            }
+                        }
+
                     }
                     composable<BunsPage> {
                         BunsScreen(onNavigateToHomeScreen = {

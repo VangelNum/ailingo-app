@@ -2,7 +2,6 @@ package org.ailingo.app.features.dictionary.main.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,7 +20,7 @@ import org.ailingo.app.features.dictionary.predictor.domain.repository.PredictWo
 import org.ailingo.app.features.favouritewords.domain.repository.FavouriteWordsRepository
 
 class DictionaryViewModel(
-    private val historyDictionarySearchHistoryRepository: Deferred<DictionarySearchHistoryRepository>,
+    private val historyDictionarySearchHistoryRepository: DictionarySearchHistoryRepository,
     private val favouriteWordsRepository: FavouriteWordsRepository,
     private val predictorRepository: PredictWordsRepository,
     private val dictionaryRepository: DictionaryRepository,
@@ -150,7 +149,7 @@ class DictionaryViewModel(
 
     private fun loadSearchHistory() {
         viewModelScope.launch {
-            historyDictionarySearchHistoryRepository.await().getSearchHistory().collect { state ->
+            historyDictionarySearchHistoryRepository.getSearchHistory().collect { state ->
                 _historyOfDictionaryState.update { state }
             }
         }
@@ -158,13 +157,13 @@ class DictionaryViewModel(
 
     private fun saveToSearchHistory(word: DictionarySearchHistory) {
         viewModelScope.launch {
-            historyDictionarySearchHistoryRepository.await().insertWordToSearchHistory(word)
+            historyDictionarySearchHistoryRepository.insertWordToSearchHistory(word)
         }
     }
 
     private fun deleteFromSearchHistory(id: Long) {
         viewModelScope.launch {
-            historyDictionarySearchHistoryRepository.await().deleteWordFromSearchHistory(id)
+            historyDictionarySearchHistoryRepository.deleteWordFromSearchHistory(id)
         }
     }
 }

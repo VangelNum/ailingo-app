@@ -21,7 +21,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,17 +49,28 @@ fun UpdateAvatarScreen(
     uploadAvatarState: UiState<UploadImageResponse>,
     updateAvatarState: UiState<User>,
     generatedAvatarsState: List<UiState<String>>,
-    selectedAvatarUrl: String?,
-    locallySelectedBase64: String?,
     onEvent: (UpdateAvatarEvent) -> Unit,
     onNavigateToBunsScreen: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
+    var localeSelectedImageBase64 by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var selectedImageUri by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    LaunchedEffect(localeSelectedImageBase64) {
+        localeSelectedImageBase64?.let { onEvent(UpdateAvatarEvent.OnUploadImage(it)) }
+    }
+
     LaunchedEffect(uploadAvatarState) {
         if (uploadAvatarState is UiState.Error) {
             SnackbarController.sendEvent(SnackbarEvent(message = "Ошибка загрузки изображения: ${uploadAvatarState.message}"))
         } else if (uploadAvatarState is UiState.Success) {
+            selectedImageUri = uploadAvatarState.data.data.display_url
             SnackbarController.sendEvent(SnackbarEvent(message = "Изображение успешно загружено!"))
         }
     }
@@ -66,14 +81,6 @@ fun UpdateAvatarScreen(
         } else if (updateAvatarState is UiState.Success) {
             SnackbarController.sendEvent(SnackbarEvent(message = "Аватар успешно установлен!"))
             onNavigateToBunsScreen()
-        }
-    }
-
-    LaunchedEffect(generatedAvatarsState) {
-        generatedAvatarsState.forEach { state ->
-            if (state is UiState.Error) {
-                SnackbarController.sendEvent(SnackbarEvent(message = "Ошибка генерации аватара: ${state.message}"))
-            }
         }
     }
 
@@ -101,40 +108,47 @@ fun UpdateAvatarScreen(
                 shape = CircleShape,
                 modifier = Modifier.size(150.dp),
             ) {
-                val imageModel = locallySelectedBase64 ?: selectedAvatarUrl
-
-                if (imageModel != null) {
+                if (selectedImageUri != null) {
                     SubcomposeAsyncImage(
-                        model = imageModel,
+                        model = selectedImageUri,
                         contentDescription = "Selected Avatar",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         loading = {
-                            if (uploadAvatarState !is UiState.Loading) {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { SmallLoadingIndicator() }
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                SmallLoadingIndicator()
                             }
                         },
                         error = {
-                            if (uploadAvatarState !is UiState.Loading) {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { SmallLoadingIndicator() }
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Failed")
                             }
                         }
                     )
                 } else {
-                    Image(
-                        painter = painterResource(Res.drawable.defaultProfilePhoto),
-                        contentDescription = "Default profile photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                if (uploadAvatarState is UiState.Loading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        SmallLoadingIndicator()
+                    if (uploadAvatarState is UiState.Loading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            SmallLoadingIndicator()
+                        }
+                    } else {
+                        Image(
+                            painterResource(Res.drawable.defaultProfilePhoto),
+                            contentScale = ContentScale.Crop,
+                            contentDescription = null
+                        )
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
@@ -155,19 +169,22 @@ fun UpdateAvatarScreen(
                             .size(80.dp)
                             .clickable(enabled = state is UiState.Success && uploadAvatarState !is UiState.Loading) {
                                 if (state is UiState.Success) {
-                                    onEvent(UpdateAvatarEvent.OnSelectGeneratedAvatar(state.data))
+                                    selectedImageUri = state.data
                                 }
                             },
-                        border = if (state is UiState.Success && state.data == selectedAvatarUrl) {
+                        border = if (state is UiState.Success && state.data == selectedImageUri) {
                             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
                         } else {
                             null
                         },
-                        elevation = CardDefaults.cardElevation(defaultElevation = if (state is UiState.Success && state.data == selectedAvatarUrl) 4.dp else 1.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = if (state is UiState.Success && state.data == selectedImageUri) 4.dp else 1.dp)
                     ) {
                         when (state) {
                             is UiState.Loading -> {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     SmallLoadingIndicator()
                                 }
                             }
@@ -178,13 +195,23 @@ fun UpdateAvatarScreen(
                                     contentDescription = "Generated Avatar ${index + 1}",
                                     contentScale = ContentScale.Crop,
                                     loading = {
-                                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
                                             SmallLoadingIndicator()
                                         }
                                     },
                                     error = {
-                                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                            Text("Error", style = MaterialTheme.typography.labelSmall, color = Color.Red)
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                "Error",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Color.Red
+                                            )
                                         }
                                     },
                                     modifier = Modifier.fillMaxSize()
@@ -192,8 +219,15 @@ fun UpdateAvatarScreen(
                             }
 
                             is UiState.Error -> {
-                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("Failed", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "Failed",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.Gray
+                                    )
                                 }
                             }
 
@@ -208,10 +242,7 @@ fun UpdateAvatarScreen(
             CustomOutlinedButton(
                 onClick = {
                     scope.launch {
-                        val base64Image = selectImage()
-                        if (base64Image != null) {
-                            onEvent(UpdateAvatarEvent.OnUploadImage(base64Image))
-                        }
+                        localeSelectedImageBase64 = selectImage()
                     }
                 },
                 enabled = uploadAvatarState !is UiState.Loading && updateAvatarState !is UiState.Loading
@@ -237,9 +268,13 @@ fun UpdateAvatarScreen(
 
             CustomOutlinedButton(
                 onClick = {
-                    onEvent(UpdateAvatarEvent.OnUpdateUserAvatar)
+                    if (selectedImageUri != null) {
+                        onEvent(UpdateAvatarEvent.OnUpdateUserAvatar(selectedImageUri!!))
+                    } else {
+                        onNavigateToBunsScreen()
+                    }
                 },
-                enabled = selectedAvatarUrl != null && updateAvatarState !is UiState.Loading
+                enabled = updateAvatarState !is UiState.Loading
             ) {
                 if (updateAvatarState is UiState.Loading) {
                     SmallLoadingIndicator(color = MaterialTheme.colorScheme.onPrimary)

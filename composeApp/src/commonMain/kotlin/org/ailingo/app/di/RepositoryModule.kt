@@ -1,7 +1,11 @@
 package org.ailingo.app.di
 
+import org.ailingo.app.features.basicauth.data.repository.AuthRepositoryImpl
+import org.ailingo.app.features.basicauth.domain.repository.AuthRepository
 import org.ailingo.app.features.chat.data.repository.ChatRepositoryImpl
 import org.ailingo.app.features.chat.domain.repository.ChatRepository
+import org.ailingo.app.features.dictionary.historysearch.data.repository.DictionarySearchHistoryRepositoryImpl
+import org.ailingo.app.features.dictionary.historysearch.domain.repository.DictionarySearchHistoryRepository
 import org.ailingo.app.features.dictionary.main.data.repository.DictionaryRepositoryImpl
 import org.ailingo.app.features.dictionary.main.domain.repository.DictionaryRepository
 import org.ailingo.app.features.dictionary.predictor.data.repository.PredictWordsRepositoryImpl
@@ -20,7 +24,6 @@ import org.ailingo.app.features.topics.data.repository.TopicRepositoryImpl
 import org.ailingo.app.features.topics.domain.repository.TopicRepository
 import org.ailingo.app.features.updateavatar.data.repository.UpdateAvatarRepositoryImpl
 import org.ailingo.app.features.updateavatar.domain.repository.UpdateAvatarRepository
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -34,7 +37,7 @@ val repositoryModule = module {
         TopicRepositoryImpl(get(), get())
     }
     single<LoginRepository> {
-        LoginRepositoryImpl(get(), get(), get(named("authRepository")))
+        LoginRepositoryImpl(get(), get(), get())
     }
     single<FavouriteWordsRepository> {
         FavouriteWordsRepositoryImpl(get(), get())
@@ -53,5 +56,11 @@ val repositoryModule = module {
     }
     single<UpdateAvatarRepository> {
         UpdateAvatarRepositoryImpl(get(), get())
+    }
+    single<AuthRepository> {
+        AuthRepositoryImpl(get())
+    }
+    single<DictionarySearchHistoryRepository> {
+        DictionarySearchHistoryRepositoryImpl(get(), get())
     }
 }

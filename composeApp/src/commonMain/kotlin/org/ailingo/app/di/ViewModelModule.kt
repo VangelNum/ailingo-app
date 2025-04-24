@@ -9,16 +9,15 @@ import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
 import org.ailingo.app.features.topics.presentation.TopicViewModel
 import org.ailingo.app.features.updateavatar.presentation.UpdateAvatarViewModel
 import org.koin.core.module.dsl.viewModel
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { LoginViewModel(get(), get(named("authRepository"))) }
+    viewModel { LoginViewModel(get(), get()) }
     viewModel { RegisterUserViewModel(get(), get()) }
     factory { (topicName: String) -> ChatViewModel(get(), topicName) }
     factory { (word: String) ->
         DictionaryViewModel(
-            get(named("dictionaryRepository")),
+            get(),
             get(),
             get(),
             get(),
