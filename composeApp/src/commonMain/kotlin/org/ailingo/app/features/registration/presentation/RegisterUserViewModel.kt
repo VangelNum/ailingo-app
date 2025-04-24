@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
-import org.ailingo.app.features.basicauth.data.model.AuthResponse
+import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.features.registration.data.model.RegistrationRequest
 import org.ailingo.app.features.registration.domain.repository.RegisterRepository
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository
@@ -16,10 +16,10 @@ class RegisterUserViewModel(
     private val registerRepository: RegisterRepository,
     private val verificationRepository: VerifyEmailRepository
 ) : ViewModel() {
-    private val _pendingRegistrationUiState = MutableStateFlow<UiState<Unit>>(UiState.Idle())
+    private val _pendingRegistrationUiState = MutableStateFlow<UiState<String>>(UiState.Idle())
     val pendingRegistrationUiState = _pendingRegistrationUiState.asStateFlow()
 
-    private val _registrationUiState = MutableStateFlow<UiState<AuthResponse>>(UiState.Idle())
+    private val _registrationUiState = MutableStateFlow<UiState<User>>(UiState.Idle())
     val registrationUiState = _registrationUiState.asStateFlow()
 
     fun onEvent(event: RegistrationEvent) {
@@ -47,6 +47,7 @@ class RegisterUserViewModel(
     }
 
     private fun resetState() {
-        _pendingRegistrationUiState.value = UiState.Idle()
+        _pendingRegistrationUiState.update { UiState.Idle() }
+        _registrationUiState.update { UiState.Idle() }
     }
 }

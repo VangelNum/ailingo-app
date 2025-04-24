@@ -1,6 +1,7 @@
 package org.ailingo.app.features.login.data.repository
 
 import AiLingo.composeApp.BuildConfig.BASE_URL
+import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -51,8 +52,9 @@ class LoginRepositoryImpl(
         emit(UiState.Loading())
         try {
             val credentials = authRepositoryDeferred.await().getBasicAuth()
+            Logger.i("credentials")
+            Logger.i(credentials.toString())
             if (credentials.isNullOrEmpty()) {
-                emit(UiState.Error("No saved credentials for auto-login"))
                 return@flow
             }
             val response: HttpResponse = httpClient.get("$BASE_URL/api/v1/user/me") {

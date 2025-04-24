@@ -5,16 +5,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
+import org.ailingo.app.features.basicauth.domain.repository.AuthRepository
 import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.features.login.domain.repository.LoginRepository
 
 class LoginViewModel(
-    private val loginRepository: LoginRepository
+    private val loginRepository: LoginRepository,
+    private val authRepositoryDeferred: Deferred<AuthRepository>
 ) : ViewModel() {
     private val _loginState = MutableStateFlow<UiState<User>>(UiState.Idle())
     val loginState = _loginState.asStateFlow()
@@ -22,19 +25,15 @@ class LoginViewModel(
     var login by mutableStateOf("")
     var password by mutableStateOf("")
 
-    init {
-        authLogin()
-    }
-
-    fun onEvent(event: LoginScreenEvent) {
+    fun onEvent(event: LoginEvent) {
         when (event) {
-            is LoginScreenEvent.OnLoginUser -> loginUser(event.login, event.password)
-            LoginScreenEvent.OnBackToEmptyState -> backToEmptyState()
-            LoginScreenEvent.OnAuthLogin -> authLogin()
+            is LoginEvent.OnLoginUser -> loginUser(event.login, event.password)
+            LoginEvent.OnBackToEmptyState -> backToEmptyState()
+            LoginEvent.OnAutoLogin -> autoLogin()
         }
     }
 
-    private fun authLogin() {
+    private fun autoLogin() {
         viewModelScope.launch {
             loginRepository.autoLogin().collect { state ->
                 _loginState.update { state }
@@ -54,6 +53,9 @@ class LoginViewModel(
     }
 
     private fun backToEmptyState() {
+        viewModelScope.launch {
+            authRepositoryDeferred.await().deleteBasicAuth()
+        }
         _loginState.value = UiState.Idle()
     }
 }

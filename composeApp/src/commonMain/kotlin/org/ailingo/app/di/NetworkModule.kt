@@ -3,6 +3,7 @@ package org.ailingo.app.di
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.connection_timeout
 import ailingo.composeapp.generated.resources.could_not_connect
+import ailingo.composeapp.generated.resources.failed_auth
 import ailingo.composeapp.generated.resources.request_timeout
 import ailingo.composeapp.generated.resources.unexpected_error
 import co.touchlab.kermit.Logger
@@ -22,6 +23,7 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -46,9 +48,9 @@ val networkModule = module {
                 level = LogLevel.ALL
             }
             install(HttpTimeout) {
-                requestTimeoutMillis = 15000
-                socketTimeoutMillis = 15000
-                connectTimeoutMillis = 15000
+                requestTimeoutMillis = 60000
+                socketTimeoutMillis = 60000
+                connectTimeoutMillis = 60000
             }
             install(AuthInterceptor) {
                 authRepository = get(named("authRepository"))
@@ -66,13 +68,18 @@ val networkModule = module {
     single<ErrorMapper> {
         object : ErrorMapper {
             override suspend fun mapError(throwable: Throwable?, httpResponse: HttpResponse?): String {
-                if (httpResponse != null && !httpResponse.status.isSuccess()) {
-                    return try {
-                        val errorBody = httpResponse.body<JsonObject>()
-                        errorBody["message"]?.jsonPrimitive?.content ?: getString(Res.string.unexpected_error)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        getString(Res.string.unexpected_error)
+                if (httpResponse != null) {
+                    if (httpResponse.status == HttpStatusCode.Unauthorized) {
+                        return getString(Res.string.failed_auth) // Or a more specific message
+                    }
+                    if (!httpResponse.status.isSuccess()) {
+                        return try {
+                            val errorBody = httpResponse.body<JsonObject>()
+                            errorBody["message"]?.jsonPrimitive?.content ?: getString(Res.string.unexpected_error)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            getString(Res.string.unexpected_error)
+                        }
                     }
                 }
                 return when (throwable) {

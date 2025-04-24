@@ -26,10 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -46,14 +43,15 @@ import org.ailingo.app.core.presentation.snackbar.ObserveAsEvents
 import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.topappbar.TopAppBarCenter
 import org.ailingo.app.core.presentation.topappbar.TopAppBarWithProfile
+import org.ailingo.app.features.buns.presentation.BunsScreen
 import org.ailingo.app.features.chat.presentation.ChatScreen
 import org.ailingo.app.features.chat.presentation.ChatViewModel
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryScreen
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryViewModel
 import org.ailingo.app.features.favouritewords.presentation.FavouriteScreen
 import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewModel
+import org.ailingo.app.features.login.presentation.LoginEvent
 import org.ailingo.app.features.login.presentation.LoginScreen
-import org.ailingo.app.features.login.presentation.LoginScreenEvent
 import org.ailingo.app.features.login.presentation.LoginViewModel
 import org.ailingo.app.features.profile.presentation.ProfileScreen
 import org.ailingo.app.features.profileupdate.presentation.ProfileUpdateEvent
@@ -62,11 +60,11 @@ import org.ailingo.app.features.profileupdate.presentation.ProfileUpdateViewMode
 import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
 import org.ailingo.app.features.registration.presentation.RegistrationEvent
 import org.ailingo.app.features.registration.presentation.RegistrationScreen
-import org.ailingo.app.features.registration.presentation.email_verification.OtpAction
-import org.ailingo.app.features.registration.presentation.email_verification.OtpViewModel
 import org.ailingo.app.features.registration.presentation.email_verification.VerifyEmailScreen
 import org.ailingo.app.features.topics.presentation.TopicViewModel
 import org.ailingo.app.features.topics.presentation.TopicsScreen
+import org.ailingo.app.features.updateavatar.presentation.UpdateAvatarScreen
+import org.ailingo.app.features.updateavatar.presentation.UpdateAvatarViewModel
 import org.ailingo.app.theme.AppTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -81,7 +79,7 @@ fun AiLingoNavGraph(
 ) {
     val loginViewModel: LoginViewModel = koinViewModel<LoginViewModel>()
     val loginState = loginViewModel.loginState.collectAsStateWithLifecycle().value
-    val registerViewModel: RegisterUserViewModel = koinViewModel<RegisterUserViewModel>()
+    val registrationViewModel: RegisterUserViewModel = koinViewModel<RegisterUserViewModel>()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val adaptiveInfo = currentWindowAdaptiveInfo()
@@ -198,7 +196,7 @@ fun AiLingoNavGraph(
                             },
                             selected = false,
                             onClick = {
-                                loginViewModel.onEvent(LoginScreenEvent.OnBackToEmptyState)
+                                loginViewModel.onEvent(LoginEvent.OnBackToEmptyState)
                                 navController.navigate(LoginPage) {
                                     popUpTo(0)
                                 }
@@ -219,6 +217,9 @@ fun AiLingoNavGraph(
                                 loginViewModel.onEvent(event)
                             }
                         )
+                        LaunchedEffect(Unit) {
+                            loginViewModel.onEvent(LoginEvent.OnAutoLogin)
+                        }
                     }
                     composable<TopicsPage> {
                         val topicsViewModel = koinViewModel<TopicViewModel>()
@@ -256,13 +257,13 @@ fun AiLingoNavGraph(
                         )
                     }
                     composable<RegistrationPage> {
-                        val pendingRegistrationState =
-                            registerViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle().value
+                        val pendingRegistrationState = registrationViewModel.pendingRegistrationUiState.collectAsStateWithLifecycle().value
                         RegistrationScreen(
                             onNavigateToLoginPage = {
                                 navController.navigate(LoginPage)
                             },
                             onNavigateToVerifyEmail = { email, password ->
+                                registrationViewModel.onEvent(RegistrationEvent.OnBackToEmptyState)
                                 navController.navigate(
                                     VerifyEmailPage(
                                         email = email,
@@ -272,7 +273,7 @@ fun AiLingoNavGraph(
                             },
                             pendingRegistrationState = pendingRegistrationState,
                             onEvent = { event ->
-                                registerViewModel.onEvent(event)
+                                registrationViewModel.onEvent(event)
                             }
                         )
                     }
@@ -280,7 +281,7 @@ fun AiLingoNavGraph(
                         ProfileScreen(
                             loginState = loginState,
                             onExit = {
-                                loginViewModel.onEvent(LoginScreenEvent.OnBackToEmptyState)
+                                loginViewModel.onEvent(LoginEvent.OnBackToEmptyState)
                                 navController.navigate(LoginPage) {
                                     popUpTo(0)
                                 }
@@ -315,7 +316,7 @@ fun AiLingoNavGraph(
                                         newPassword
                                     } else currentPassword
                                     loginViewModel.onEvent(
-                                        LoginScreenEvent.OnLoginUser(
+                                        LoginEvent.OnLoginUser(
                                             newLogin,
                                             passwordToUse
                                         )
@@ -378,71 +379,59 @@ fun AiLingoNavGraph(
                     }
                     composable<VerifyEmailPage> { backStack ->
                         val args = backStack.toRoute<VerifyEmailPage>()
-                        val registrationState =
-                            registerViewModel.registrationUiState.collectAsStateWithLifecycle().value
-                        val otpViewModel: OtpViewModel = koinViewModel<OtpViewModel>()
-                        val otpState = otpViewModel.state.collectAsStateWithLifecycle().value
-                        val focusRequesters = remember {
-                            List(6) { FocusRequester() }
-                        }
-                        val focusManager = LocalFocusManager.current
-                        val keyboardManager = LocalSoftwareKeyboardController.current
-
-                        LaunchedEffect(otpState.focusedIndex) {
-                            otpState.focusedIndex?.let { index ->
-                                focusRequesters.getOrNull(index)?.requestFocus()
-                            }
-                        }
-
-                        LaunchedEffect(otpState.code, keyboardManager) {
-                            val allNumbersEntered = otpState.code.none { it == null }
-                            if (allNumbersEntered) {
-                                focusRequesters.forEach {
-                                    it.freeFocus()
-                                }
-                                focusManager.clearFocus()
-                                keyboardManager?.hide()
-                                val verificationCode = otpState.code.joinToString("")
-                                registerViewModel.onEvent(
-                                    RegistrationEvent.OnVerifyEmail(
-                                        args.email,
-                                        verificationCode
-                                    )
-                                )
-                            }
-                        }
+                        val registrationState = registrationViewModel.registrationUiState.collectAsStateWithLifecycle().value
 
                         VerifyEmailScreen(
                             email = args.email,
-                            otpState = otpState,
-                            focusRequesters = focusRequesters,
-                            onAction = { action ->
-                                when (action) {
-                                    is OtpAction.OnEnterNumber -> {
-                                        if (action.number != null) {
-                                            focusRequesters[action.index].freeFocus()
-                                        }
-                                    }
-
-                                    else -> Unit
-                                }
-                                otpViewModel.onAction(action)
-                            },
                             registrationState = registrationState,
-                            onNavigateChatScreen = {
+                            onCodeCheck = { code ->
+                                registrationViewModel.onEvent(RegistrationEvent.OnVerifyEmail(args.email, code))
+                            },
+                            onNavigateToUpdateAvatar = {
                                 loginViewModel.onEvent(
-                                    LoginScreenEvent.OnLoginUser(
+                                    LoginEvent.OnLoginUser(
                                         args.email,
                                         args.password
                                     )
                                 )
-                                navController.navigate(ChatPage)
+                                navController.navigate(UpdateAvatarPage) {
+                                    popUpTo(0)
+                                }
                             },
-                            modifier = Modifier,
                             onNavigateBack = {
-                                navController.navigateUp()
+                                navController.navigate(RegistrationPage)
                             }
                         )
+                    }
+                    composable<UpdateAvatarPage> { backStack ->
+                        val updateAvatarViewModel = koinViewModel<UpdateAvatarViewModel>()
+                        val uploadAvatarState = updateAvatarViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
+                        val updateAvatarState = updateAvatarViewModel.updateAvatarState.collectAsStateWithLifecycle().value
+                        val generatedAvatarsState by updateAvatarViewModel.generatedAvatarsState.collectAsStateWithLifecycle()
+                        val selectedAvatarUrl by updateAvatarViewModel.selectedAvatarUrl.collectAsStateWithLifecycle()
+                        val locallySelectedBase64 by updateAvatarViewModel.locallySelectedBase64.collectAsStateWithLifecycle()
+                        UpdateAvatarScreen(
+                            uploadAvatarState = uploadAvatarState,
+                            updateAvatarState = updateAvatarState,
+                            generatedAvatarsState = generatedAvatarsState,
+                            selectedAvatarUrl = selectedAvatarUrl,
+                            onEvent = { event ->
+                                updateAvatarViewModel.onEvent(event)
+                            },
+                            onNavigateToBunsScreen = {
+                                navController.navigate(BunsPage) {
+                                    popUpTo(0)
+                                }
+                            },
+                            locallySelectedBase64 = locallySelectedBase64
+                        )
+                    }
+                    composable<BunsPage> {
+                        BunsScreen(onNavigateToHomeScreen = {
+                            navController.navigate(TopicsPage) {
+                                popUpTo(0)
+                            }
+                        })
                     }
                 }
             }

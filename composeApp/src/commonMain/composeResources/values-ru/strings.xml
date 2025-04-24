@@ -112,4 +112,8 @@
     <string name="verifying_code">Проверяем код..</string>
     <string name="topic_completed">Топик пройден</string>
     <string name="loading_error">Ошибка загрузки</string>
+    <string name="enter_code">Введите код</string>
+    <string name="failed_auth">Неверно указана почта или пароль</string>
+    <string name="thanks">Спасибо!</string>
+    <string name="buns_info">В честь успешной регистрации мы дарим вам 100 монет!</string>
 </resources>

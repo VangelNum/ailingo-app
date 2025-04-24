@@ -5,5 +5,5 @@ import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.registration.data.model.RegistrationRequest
 
 interface RegisterRepository {
-    fun register(registrationRequest: RegistrationRequest): Flow<UiState<Unit>>
+    fun register(registrationRequest: RegistrationRequest): Flow<UiState<String>>
 }

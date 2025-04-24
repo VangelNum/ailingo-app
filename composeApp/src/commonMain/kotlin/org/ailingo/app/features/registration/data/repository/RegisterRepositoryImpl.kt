@@ -2,6 +2,7 @@ package org.ailingo.app.features.registration.data.repository
 
 import AiLingo.composeApp.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -18,7 +19,7 @@ class RegisterRepositoryImpl(
     private val httpClient: HttpClient,
     private val errorParser: ErrorMapper,
 ) : RegisterRepository {
-    override fun register(registrationRequest: RegistrationRequest): Flow<UiState<Unit>> = flow {
+    override fun register(registrationRequest: RegistrationRequest): Flow<UiState<String>> = flow {
         emit(UiState.Loading())
         try {
             val response = httpClient.post("$BASE_URL/api/v1/user/register") {
@@ -26,7 +27,7 @@ class RegisterRepositoryImpl(
                 setBody(registrationRequest)
             }
             if (response.status.isSuccess()) {
-                emit(UiState.Success(Unit))
+                emit(UiState.Success(response.body()))
             } else {
                 emit(UiState.Error(errorParser.mapError(httpResponse = response)))
             }

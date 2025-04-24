@@ -18,6 +18,8 @@ import org.ailingo.app.features.registration.domain.repository.RegisterRepositor
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository
 import org.ailingo.app.features.topics.data.repository.TopicRepositoryImpl
 import org.ailingo.app.features.topics.domain.repository.TopicRepository
+import org.ailingo.app.features.updateavatar.data.repository.UpdateAvatarRepositoryImpl
+import org.ailingo.app.features.updateavatar.domain.repository.UpdateAvatarRepository
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -48,5 +50,8 @@ val repositoryModule = module {
     }
     single<ChatRepository> {
         ChatRepositoryImpl(get(), get())
+    }
+    single<UpdateAvatarRepository> {
+        UpdateAvatarRepositoryImpl(get(), get())
     }
 }

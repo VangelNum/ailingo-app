@@ -6,16 +6,15 @@ import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewMo
 import org.ailingo.app.features.login.presentation.LoginViewModel
 import org.ailingo.app.features.profileupdate.presentation.ProfileUpdateViewModel
 import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
-import org.ailingo.app.features.registration.presentation.email_verification.OtpViewModel
 import org.ailingo.app.features.topics.presentation.TopicViewModel
+import org.ailingo.app.features.updateavatar.presentation.UpdateAvatarViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { LoginViewModel(get()) }
+    viewModel { LoginViewModel(get(), get(named("authRepository"))) }
     viewModel { RegisterUserViewModel(get(), get()) }
-    viewModel { OtpViewModel() }
     factory { (topicName: String) -> ChatViewModel(get(), topicName) }
     factory { (word: String) ->
         DictionaryViewModel(
@@ -29,4 +28,5 @@ val viewModelModule = module {
     viewModel { TopicViewModel(get()) }
     viewModel { ProfileUpdateViewModel(get()) }
     viewModel { FavouriteWordsViewModel(get()) }
+    viewModel { UpdateAvatarViewModel(get()) }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -41,7 +43,8 @@ fun LoadingScreen(
     textAlign: TextAlign = TextAlign.Center,
     image: DrawableResource? = null,
     imageSize: Dp? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    color: Color? = null
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "infinity_loading_animation")
     val rotation by infiniteTransition.animateFloat(
@@ -71,6 +74,7 @@ fun LoadingScreen(
             ) {
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
+                    color = color ?: ProgressIndicatorDefaults.circularColor,
                     modifier = Modifier
                         .size(40.dp)
                         .graphicsLayer {
@@ -79,6 +83,7 @@ fun LoadingScreen(
                 )
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
+                    color = color ?: ProgressIndicatorDefaults.circularColor,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
@@ -92,6 +97,7 @@ fun LoadingScreen(
                 )
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
+                    color = color ?: ProgressIndicatorDefaults.circularColor,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
@@ -105,7 +111,11 @@ fun LoadingScreen(
                 )
             }
             if (image != null) {
-                Image(painter = painterResource(image), contentDescription = null, modifier = Modifier.size(imageSize ?: 150.dp))
+                Image(
+                    painter = painterResource(image),
+                    contentDescription = null,
+                    modifier = Modifier.size(imageSize ?: 150.dp)
+                )
             }
             if (loadingText != null) {
                 Text(loadingText, textAlign = textAlign)
@@ -114,9 +124,8 @@ fun LoadingScreen(
     }
 }
 
-
 @Composable
-fun SmallLoadingIndicator(modifier: Modifier = Modifier, text: String? = null) {
+fun SmallLoadingIndicator(modifier: Modifier = Modifier, text: String? = null, color: Color? = null) { // Added color parameter
     val infiniteTransition = rememberInfiniteTransition(label = "infinity_loading_animation")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -144,6 +153,7 @@ fun SmallLoadingIndicator(modifier: Modifier = Modifier, text: String? = null) {
             ) {
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
+                    color = color ?: ProgressIndicatorDefaults.circularColor,
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
@@ -152,6 +162,7 @@ fun SmallLoadingIndicator(modifier: Modifier = Modifier, text: String? = null) {
                 )
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
+                    color = color ?: ProgressIndicatorDefaults.circularColor,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
@@ -165,6 +176,7 @@ fun SmallLoadingIndicator(modifier: Modifier = Modifier, text: String? = null) {
                 )
                 CircularProgressIndicator(
                     strokeWidth = 1.dp,
+                    color = color ?: ProgressIndicatorDefaults.circularColor,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(

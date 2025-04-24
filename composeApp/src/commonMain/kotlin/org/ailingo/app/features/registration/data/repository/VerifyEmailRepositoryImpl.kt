@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.di.ErrorMapper
-import org.ailingo.app.features.basicauth.data.model.AuthResponse
+import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.features.registration.data.model.EmailVerifyRequest
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository
 
@@ -21,22 +21,21 @@ class VerifyEmailRepositoryImpl(
     private val errorParser: ErrorMapper
 ) : VerifyEmailRepository {
 
-    override fun verifyEmail(email: String, verificationCode: String): Flow<UiState<AuthResponse>> =
-        flow {
-            emit(UiState.Loading())
-            try {
-                val response = httpClient.post("$BASE_URL/api/v1/user/verify-email") {
-                    contentType(ContentType.Application.Json)
-                    setBody(EmailVerifyRequest(email, verificationCode))
-                }
-                if (response.status.isSuccess()) {
-                    val authResponse = response.body<AuthResponse>()
-                    emit(UiState.Success(authResponse))
-                } else {
-                    emit(UiState.Error(errorParser.mapError(httpResponse = response)))
-                }
-            } catch (e: Exception) {
-                emit(UiState.Error(errorParser.mapError(e)))
+    override fun verifyEmail(email: String, verificationCode: String): Flow<UiState<User>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response = httpClient.post("$BASE_URL/api/v1/user/verify-email") {
+                contentType(ContentType.Application.Json)
+                setBody(EmailVerifyRequest(email, verificationCode))
             }
+            if (response.status.isSuccess()) {
+                val authResponse = response.body<User>()
+                emit(UiState.Success(authResponse))
+            } else {
+                emit(UiState.Error(errorParser.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorParser.mapError(e)))
         }
+    }
 }

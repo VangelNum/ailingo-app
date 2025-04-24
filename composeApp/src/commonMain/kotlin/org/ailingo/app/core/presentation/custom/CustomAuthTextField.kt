@@ -1,6 +1,7 @@
 package org.ailingo.app.core.presentation.custom
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,7 +25,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun CustomTextField(
+fun CustomAuthTextField(
+    labelResId: StringResource,
     placeholderResId: StringResource,
     value: String,
     onValueChange: (String) -> Unit,
@@ -33,18 +35,19 @@ fun CustomTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: @Composable (() -> Unit)? = null,
-    focusRequester: FocusRequester = FocusRequester.Default,
+    focusRequester: FocusRequester,
     isError: Boolean = false,
     errorMessage: String? = null
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    Text(stringResource(labelResId), style = MaterialTheme.typography.titleMedium)
     Spacer(modifier = Modifier.height(4.dp))
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
         modifier = modifier
-            .focusRequester(focusRequester).height(OutlinedTextFieldDefaults.MinHeight)
+            .focusRequester(focusRequester).defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
             .then(if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) Modifier.fillMaxWidth() else Modifier),
         shape = RoundedCornerShape(32.dp),
         placeholder = {

@@ -70,10 +70,10 @@ import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
-import org.ailingo.app.features.login.presentation.VerticalSpacer
 import org.ailingo.app.features.profileupdate.data.model.ProfileUpdateRequest
 import org.ailingo.app.features.profileupdate.data.model.ProfileUpdateResponse
 import org.ailingo.app.features.profileupdate.data.model.imageuploader.ImageUploaderResponse
+import org.ailingo.app.features.registration.presentation.VerticalSpacer
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

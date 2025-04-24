@@ -65,3 +65,9 @@ data class VerifyEmailPage(
     val email: String,
     val password: String,
 )
+
+@Serializable
+object UpdateAvatarPage
+
+@Serializable
+object BunsPage

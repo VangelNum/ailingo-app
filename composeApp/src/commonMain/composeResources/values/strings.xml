@@ -114,4 +114,8 @@
     <string name="verifying_code">Verifying code..</string>
     <string name="topic_completed">Topic completed</string>
     <string name="loading_error">Loading error</string>
+    <string name="enter_code">Enter code</string>
+    <string name="failed_auth">Wrong email or password</string>
+    <string name="thanks">Thank you!</string>
+    <string name="buns_info">In honor of successful registration, we give you 100 coins</string>
 </resources>
