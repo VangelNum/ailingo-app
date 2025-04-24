@@ -24,19 +24,25 @@ import org.ailingo.app.features.topics.data.model.Topic
 @Composable
 fun TopicsScreen(
     topicsUiState: UiState<List<Topic>>,
-    onTopicClick: (String, String)->Unit
+    onTopicClick: (String, String) -> Unit
 ) {
     when (topicsUiState) {
         is UiState.Error -> {
             ErrorScreen(errorMessage = topicsUiState.message)
         }
+
         is UiState.Idle -> {}
         is UiState.Loading -> {
             LoadingScreen(modifier = Modifier.fillMaxSize(), image = Res.drawable.loadingstate)
         }
+
         is UiState.Success -> {
             if (topicsUiState.data.isEmpty()) {
-                EmptyScreen(text = Res.string.topic_list_empty, modifier = Modifier.fillMaxSize(), image = Res.drawable.emptystate)
+                EmptyScreen(
+                    text = Res.string.topic_list_empty,
+                    modifier = Modifier.fillMaxSize(),
+                    image = Res.drawable.emptystate
+                )
             } else {
                 TopicsContent(topicsUiState.data, onTopicClick)
             }
@@ -50,7 +56,11 @@ fun TopicsContent(
     onTopicClick: (String, String) -> Unit
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
-    val adaptiveLazyGridSize = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED) 280.dp else 140.dp
+    val adaptiveLazyGridSize =
+        if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED ||
+            adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
+        ) 260.dp
+        else 140.dp
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(adaptiveLazyGridSize),
         verticalItemSpacing = 8.dp,

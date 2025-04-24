@@ -5,10 +5,10 @@ import ailingo.composeapp.generated.resources.action_cancel
 import ailingo.composeapp.generated.resources.action_confirm
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
+import ailingo.composeapp.generated.resources.loading_error
+import ailingo.composeapp.generated.resources.topic_completed
 import ailingo.composeapp.generated.resources.topic_confirmation_message
 import ailingo.composeapp.generated.resources.topic_confirmation_title
-import ailingo.composeapp.generated.resources.topic_completed
-import ailingo.composeapp.generated.resources.loading_error
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,7 +45,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
-import org.ailingo.app.core.presentation.LoadingScreen
+import org.ailingo.app.core.presentation.SmallLoadingIndicator
 import org.ailingo.app.features.topics.data.model.Topic
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -93,7 +93,8 @@ fun ContentTopics(
             contentAlignment = Alignment.Center
         ) {
             Card(
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.aspectRatio(1f)
             ) {
                 SubcomposeAsyncImage(
                     model = topic.imageUrl,
@@ -109,7 +110,7 @@ fun ContentTopics(
                         },
                     loading = {
                         Box(modifier = Modifier.fillMaxSize().aspectRatio(1f), contentAlignment = Alignment.Center) {
-                            LoadingScreen()
+                            SmallLoadingIndicator()
                         }
                     },
                     error = {
