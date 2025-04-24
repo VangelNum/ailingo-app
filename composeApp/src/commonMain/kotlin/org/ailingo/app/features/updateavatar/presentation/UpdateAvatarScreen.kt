@@ -2,6 +2,16 @@ package org.ailingo.app.features.updateavatar.presentation
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
+import ailingo.composeapp.generated.resources.error_loading_image
+import ailingo.composeapp.generated.resources.error_updating_avatar
+import ailingo.composeapp.generated.resources.image_uploaded_successfully
+import ailingo.composeapp.generated.resources.update_avatar_choose_generate
+import ailingo.composeapp.generated.resources.update_avatar_choose_photo
+import ailingo.composeapp.generated.resources.update_avatar_generate_other
+import ailingo.composeapp.generated.resources.update_avatar_lets_set_photo
+import ailingo.composeapp.generated.resources.update_avatar_proceed
+import ailingo.composeapp.generated.resources.update_avatar_successful
+import ailingo.composeapp.generated.resources.update_avatar_successful_registration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -14,7 +24,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +53,10 @@ import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
 import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.features.profileupdate.presentation.selectImage
-import org.ailingo.app.features.updateavatar.data.model.UploadImageResponse
+import org.ailingo.app.features.uploadimage.data.model.UploadImageResponse
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun UpdateAvatarScreen(
@@ -68,18 +82,26 @@ fun UpdateAvatarScreen(
 
     LaunchedEffect(uploadAvatarState) {
         if (uploadAvatarState is UiState.Error) {
-            SnackbarController.sendEvent(SnackbarEvent(message = "Ошибка загрузки изображения: ${uploadAvatarState.message}"))
+            SnackbarController.sendEvent(
+                SnackbarEvent(
+                    message = getString(Res.string.error_loading_image, uploadAvatarState.message)
+                )
+            )
         } else if (uploadAvatarState is UiState.Success) {
             selectedImageUri = uploadAvatarState.data.data.display_url
-            SnackbarController.sendEvent(SnackbarEvent(message = "Изображение успешно загружено!"))
+            SnackbarController.sendEvent(SnackbarEvent(message = getString(Res.string.image_uploaded_successfully)))
         }
     }
 
     LaunchedEffect(updateAvatarState) {
         if (updateAvatarState is UiState.Error) {
-            SnackbarController.sendEvent(SnackbarEvent(message = "Ошибка обновления аватара: ${updateAvatarState.message}"))
+            SnackbarController.sendEvent(
+                SnackbarEvent(
+                    message = getString(Res.string.error_updating_avatar, updateAvatarState.message)
+                )
+            )
         } else if (updateAvatarState is UiState.Success) {
-            SnackbarController.sendEvent(SnackbarEvent(message = "Аватар успешно установлен!"))
+            SnackbarController.sendEvent(SnackbarEvent(message = getString(Res.string.update_avatar_successful)))
             onNavigateToBunsScreen()
         }
     }
@@ -88,17 +110,18 @@ fun UpdateAvatarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Успешная регистрация",
+                text = stringResource(Res.string.update_avatar_successful_registration),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Давайте установим фото",
+                text = stringResource(Res.string.update_avatar_lets_set_photo),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
@@ -152,7 +175,7 @@ fun UpdateAvatarScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Выберите или сгенерируйте",
+                text = stringResource(Res.string.update_avatar_choose_generate),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
@@ -247,7 +270,7 @@ fun UpdateAvatarScreen(
                 },
                 enabled = uploadAvatarState !is UiState.Loading && updateAvatarState !is UiState.Loading
             ) {
-                Text("Выбрать фото")
+                Text(stringResource(Res.string.update_avatar_choose_photo))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -260,7 +283,7 @@ fun UpdateAvatarScreen(
                 if (isGenerating) {
                     SmallLoadingIndicator(color = MaterialTheme.colorScheme.onSurface)
                 } else {
-                    Text("Сгенерировать другие")
+                    Text(stringResource(Res.string.update_avatar_generate_other))
                 }
             }
 
@@ -279,7 +302,7 @@ fun UpdateAvatarScreen(
                 if (updateAvatarState is UiState.Loading) {
                     SmallLoadingIndicator(color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Продолжить")
+                    Text(stringResource(Res.string.update_avatar_proceed))
                 }
             }
         }

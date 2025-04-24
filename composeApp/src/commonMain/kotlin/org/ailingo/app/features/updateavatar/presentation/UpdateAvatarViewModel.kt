@@ -8,12 +8,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.login.data.model.User
-import org.ailingo.app.features.updateavatar.data.model.UploadImageRequest
-import org.ailingo.app.features.updateavatar.data.model.UploadImageResponse
 import org.ailingo.app.features.updateavatar.domain.repository.UpdateAvatarRepository
+import org.ailingo.app.features.uploadimage.data.model.UploadImageRequest
+import org.ailingo.app.features.uploadimage.data.model.UploadImageResponse
+import org.ailingo.app.features.uploadimage.domain.repository.UploadImageRepository
 
 class UpdateAvatarViewModel(
-    private val updateAvatarRepository: UpdateAvatarRepository
+    private val updateAvatarRepository: UpdateAvatarRepository,
+    private val uploadImageRepository: UploadImageRepository
 ) : ViewModel() {
 
     private val _uploadAvatarState = MutableStateFlow<UiState<UploadImageResponse>>(UiState.Idle())
@@ -61,7 +63,7 @@ class UpdateAvatarViewModel(
     private fun uploadImage(avatarBase64: String) {
         val uploadImageRequest = UploadImageRequest(image = avatarBase64, name = null, expiration = null)
         viewModelScope.launch {
-            updateAvatarRepository.uploadImage(uploadImageRequest).collect { state ->
+            uploadImageRepository.uploadImage(uploadImageRequest).collect { state ->
                 _uploadAvatarState.update { state }
             }
         }

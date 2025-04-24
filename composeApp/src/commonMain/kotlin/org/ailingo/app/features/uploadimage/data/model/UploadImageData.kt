@@ -1,4 +1,4 @@
-package org.ailingo.app.features.updateavatar.data.model
+package org.ailingo.app.features.uploadimage.data.model
 
 import kotlinx.serialization.Serializable
 

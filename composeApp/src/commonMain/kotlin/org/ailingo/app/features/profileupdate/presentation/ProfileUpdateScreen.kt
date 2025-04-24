@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -37,13 +36,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,8 +52,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -65,24 +60,26 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
+import org.ailingo.app.core.presentation.custom.CustomAuthTextField
+import org.ailingo.app.core.presentation.custom.CustomButton
+import org.ailingo.app.core.presentation.snackbar.SnackbarController
+import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
+import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.features.profileupdate.data.model.ProfileUpdateRequest
-import org.ailingo.app.features.profileupdate.data.model.ProfileUpdateResponse
-import org.ailingo.app.features.profileupdate.data.model.imageuploader.ImageUploaderResponse
 import org.ailingo.app.features.registration.presentation.VerticalSpacer
-import org.jetbrains.compose.resources.StringResource
+import org.ailingo.app.features.uploadimage.data.model.UploadImageResponse
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ProfileUpdateScreen(
-    profileUpdateUiState: UiState<ProfileUpdateResponse>,
-    uploadAvatarState: UiState<ImageUploaderResponse>,
+    profileUpdateUiState: UiState<User>,
+    uploadAvatarState: UiState<UploadImageResponse>,
     onProfileUpdate: (ProfileUpdateRequest) -> Unit,
     onReLoginUser: (newLogin: String, currentPassword: String, newPassword: String, passwordChanged: Boolean) -> Unit,
     onNavigateProfileScreen: () -> Unit,
@@ -110,7 +107,7 @@ fun ProfileUpdateScreen(
 
     LaunchedEffect(profileUpdateUiState) {
         if (profileUpdateUiState is UiState.Success) {
-            delay(1000L)
+            SnackbarController.sendEvent(SnackbarEvent(getString(Res.string.data_changed_successfully)))
             val passwordChanged = newPassword.value.isNotEmpty()
             onReLoginUser(newEmail.value, currentPassword.value, newPassword.value, passwordChanged)
             onNavigateProfileScreen()
@@ -144,11 +141,7 @@ fun ProfileUpdateScreen(
             LoadingScreen(modifier = Modifier.fillMaxSize())
         }
 
-        is UiState.Success -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(stringResource(Res.string.data_changed_successfully), style = MaterialTheme.typography.headlineLarge)
-            }
-        }
+        is UiState.Success -> {}
     }
 }
 
@@ -161,7 +154,7 @@ fun ProfileUpdateContent(
     newPassword: MutableState<String>,
     currentPassword: MutableState<String>,
     onUploadNewAvatar: (String) -> Unit,
-    uploadAvatarState: UiState<ImageUploaderResponse>
+    uploadAvatarState: UiState<UploadImageResponse>
 ) {
     val currentPasswordVisible = remember { mutableStateOf(false) }
     val newPasswordVisible = remember { mutableStateOf(false) }
@@ -170,7 +163,8 @@ fun ProfileUpdateContent(
     val focusRequesterNewPassword = remember { FocusRequester() }
     val focusRequesterCurrentPassword = remember { FocusRequester() }
 
-    val uploadedAvatarUrl = remember { mutableStateOf<String?>(avatar) }
+    val uploadedAvatarUrl = remember { mutableStateOf(avatar) }
+
     LaunchedEffect(uploadAvatarState) {
         if (uploadAvatarState is UiState.Success) {
             uploadedAvatarUrl.value = uploadAvatarState.data.data.display_url
@@ -200,34 +194,44 @@ fun ProfileUpdateContent(
                 AvatarProfile(avatar, onUploadNewAvatar, uploadAvatarState)
 
                 VerticalSpacer(8.dp)
-                InputProfileUpdateTextField(
+
+                CustomAuthTextField(
                     labelResId = Res.string.name,
                     placeholderResId = Res.string.enter_your_name,
-                    state = newName,
+                    value = newName.value,
+                    onValueChange = {
+                        newName.value = it
+                    },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusRequesterEmail.requestFocus() }),
                     focusRequester = focusRequesterName
                 )
                 VerticalSpacer(8.dp)
 
-                InputProfileUpdateTextField(
+                CustomAuthTextField(
                     labelResId = Res.string.email,
                     placeholderResId = Res.string.enter_your_email,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusRequesterNewPassword.requestFocus() }),
-                    state = newEmail,
+                    value = newEmail.value,
+                    onValueChange = {
+                        newEmail.value = it
+                    },
                     focusRequester = focusRequesterEmail,
                 )
 
                 VerticalSpacer(8.dp)
 
-                InputProfileUpdateTextField(
+                CustomAuthTextField(
                     labelResId = Res.string.new_password,
                     placeholderResId = Res.string.enter_your_new_password,
                     visualTransformation = if (newPasswordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusRequesterCurrentPassword.requestFocus() }),
-                    state = newPassword,
+                    value = newPassword.value,
+                    onValueChange = {
+                        newPassword.value = it
+                    },
                     focusRequester = focusRequesterNewPassword,
                     trailingIcon = {
                         val image =
@@ -242,11 +246,14 @@ fun ProfileUpdateContent(
 
                 VerticalSpacer(8.dp)
 
-                InputProfileUpdateTextField(
+                CustomAuthTextField(
                     labelResId = Res.string.current_password,
                     placeholderResId = Res.string.enter_current_password,
                     visualTransformation = if (currentPasswordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-                    state = currentPassword,
+                    value = currentPassword.value,
+                    onValueChange = {
+                        currentPassword.value = it
+                    },
                     focusRequester = focusRequesterCurrentPassword,
                     trailingIcon = {
                         val image =
@@ -260,24 +267,21 @@ fun ProfileUpdateContent(
                 )
 
                 VerticalSpacer(8.dp)
-                Button(
+                CustomButton(
                     onClick = {
+                        val newPasswordValue =
+                            if (newPassword.value.isEmpty()) null else newPassword.value
+
                         onProfileUpdate(
                             ProfileUpdateRequest(
                                 name = newName.value,
                                 email = newEmail.value,
-                                avatar = uploadedAvatarUrl.value,
-                                newPassword = newPassword.value,
-                                oldPassword = currentPassword.value
+                                avatarUrl = uploadedAvatarUrl.value,
+                                newPassword = newPasswordValue,
+                                currentPassword = currentPassword.value
                             )
                         )
                     },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .defaultMinSize(
-                            minHeight = OutlinedTextFieldDefaults.MinHeight,
-                            minWidth = OutlinedTextFieldDefaults.MinWidth
-                        ),
                     enabled = uploadAvatarState !is UiState.Loading &&
                             newName.value.isNotEmpty()
                             && newEmail.value.isNotEmpty()
@@ -295,7 +299,11 @@ fun ProfileUpdateContent(
 }
 
 @Composable
-fun AvatarProfile(avatar: String?, onUploadNewAvatar: (String) -> Unit, uploadAvatarState: UiState<ImageUploaderResponse>) {
+fun AvatarProfile(
+    avatar: String?,
+    onUploadNewAvatar: (String) -> Unit,
+    uploadAvatarState: UiState<UploadImageResponse>
+) {
 
     val selectedImage = remember {
         mutableStateOf<String?>(null)
@@ -341,7 +349,11 @@ fun AvatarProfile(avatar: String?, onUploadNewAvatar: (String) -> Unit, uploadAv
                     }
 
                     is UiState.Success -> {
-                        ProfileAvatarFromNetwork(scope, selectedImage, uploadAvatarState.data.data.display_url)
+                        ProfileAvatarFromNetwork(
+                            scope,
+                            selectedImage,
+                            uploadAvatarState.data.data.display_url
+                        )
                     }
                 }
             }
@@ -380,7 +392,11 @@ fun DefaultProfileAvatar(scope: CoroutineScope, selectedImage: MutableState<Stri
 }
 
 @Composable
-fun ProfileAvatarFromNetwork(scope: CoroutineScope, selectedImage: MutableState<String?>, avatar: String?) {
+fun ProfileAvatarFromNetwork(
+    scope: CoroutineScope,
+    selectedImage: MutableState<String?>,
+    avatar: String?
+) {
     Box(
         modifier = Modifier.size(64.dp),
         contentAlignment = Alignment.BottomEnd
@@ -404,58 +420,4 @@ fun ProfileAvatarFromNetwork(scope: CoroutineScope, selectedImage: MutableState<
     }
 }
 
-@Composable
-fun InputProfileUpdateTextField(
-    labelResId: StringResource,
-    placeholderResId: StringResource,
-    state: MutableState<String>,
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    focusRequester: FocusRequester
-) {
-    Text(stringResource(labelResId), style = MaterialTheme.typography.titleMedium)
-    VerticalSpacer(4.dp)
-    OutlinedTextField(
-        value = state.value,
-        onValueChange = { state.value = it.trim() },
-        singleLine = true,
-        modifier = modifier
-            .focusRequester(focusRequester).width(OutlinedTextFieldDefaults.MinWidth),
-        shape = RoundedCornerShape(16.dp),
-        placeholder = {
-            Text(stringResource(placeholderResId), color = Color.Gray)
-        },
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        visualTransformation = visualTransformation,
-        trailingIcon = trailingIcon
-    )
-}
-
 expect suspend fun selectImage(): String?
-
-@Preview
-@Composable
-fun ProfileUpdateScreenPreview() {
-    val profileUpdateUiState = remember { mutableStateOf<UiState<ProfileUpdateResponse>>(UiState.Idle()) }
-    val uploadAvatarState = remember { mutableStateOf<UiState<ImageUploaderResponse>>(UiState.Idle()) }
-    val name = remember { mutableStateOf("John Doe") }
-    val email = remember { mutableStateOf("john.doe@example.com") }
-    val avatar = remember { mutableStateOf<String?>(null) }
-
-    ProfileUpdateScreen(
-        profileUpdateUiState = profileUpdateUiState.value,
-        uploadAvatarState = uploadAvatarState.value,
-        onProfileUpdate = { /*TODO*/ },
-        onReLoginUser = { _, _, _, _ -> /*TODO*/ },
-        onNavigateProfileScreen = { /*TODO*/ },
-        onBackToEmptyState = { /*TODO*/ },
-        name = name.value,
-        email = email.value,
-        avatar = avatar.value,
-        onUploadNewAvatar = {}
-    )
-}

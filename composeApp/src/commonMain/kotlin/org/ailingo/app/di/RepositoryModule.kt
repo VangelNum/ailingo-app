@@ -24,6 +24,8 @@ import org.ailingo.app.features.topics.data.repository.TopicRepositoryImpl
 import org.ailingo.app.features.topics.domain.repository.TopicRepository
 import org.ailingo.app.features.updateavatar.data.repository.UpdateAvatarRepositoryImpl
 import org.ailingo.app.features.updateavatar.domain.repository.UpdateAvatarRepository
+import org.ailingo.app.features.uploadimage.data.repository.UploadImageRepositoryImpl
+import org.ailingo.app.features.uploadimage.domain.repository.UploadImageRepository
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -62,5 +64,8 @@ val repositoryModule = module {
     }
     single<DictionarySearchHistoryRepository> {
         DictionarySearchHistoryRepositoryImpl(get(), get())
+    }
+    single<UploadImageRepository> {
+        UploadImageRepositoryImpl(get(), get())
     }
 }

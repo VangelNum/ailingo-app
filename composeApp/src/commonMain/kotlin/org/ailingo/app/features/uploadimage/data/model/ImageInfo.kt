@@ -1,9 +1,9 @@
-package org.ailingo.app.features.profileupdate.data.model.imageuploader
+package org.ailingo.app.features.uploadimage.data.model
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ImgBBImage(
+data class ImageInfo(
     val filename: String,
     val name: String,
     val mime: String,

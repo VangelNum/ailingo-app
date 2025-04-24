@@ -25,7 +25,7 @@ val viewModelModule = module {
         )
     }
     viewModel { TopicViewModel(get()) }
-    viewModel { ProfileUpdateViewModel(get()) }
+    viewModel { ProfileUpdateViewModel(get(), get()) }
     viewModel { FavouriteWordsViewModel(get()) }
-    viewModel { UpdateAvatarViewModel(get()) }
+    viewModel { UpdateAvatarViewModel(get(), get()) }
 }

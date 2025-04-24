@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,13 +35,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,12 +53,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
+import org.ailingo.app.core.presentation.custom.CustomButton
+import org.ailingo.app.core.presentation.custom.CustomOutlinedButton
 import org.ailingo.app.features.login.data.model.User
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -105,14 +105,7 @@ fun ProfileScreen(
             )
         }
 
-        is UiState.Idle -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Not logged in")
-            }
-        }
+        is UiState.Idle -> {}
     }
 }
 
@@ -260,6 +253,8 @@ fun ProfileAvatar(avatarUrl: String?, size: Dp) {
 
 @Composable
 fun ProfileStats(user: User, modifier: Modifier = Modifier) {
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = stringResource(Res.string.your_statistics),
@@ -270,7 +265,7 @@ fun ProfileStats(user: User, modifier: Modifier = Modifier) {
         )
 
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) Modifier.fillMaxWidth() else Modifier.fillMaxWidth(0.5f),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surface
@@ -362,10 +357,8 @@ fun ProfileActions(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FilledTonalButton(
-            onClick = onNavigateProfileChange,
-            modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
-            shape = RoundedCornerShape(50)
+        CustomButton(
+            onClick = onNavigateProfileChange
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
@@ -375,18 +368,8 @@ fun ProfileActions(
             Text(stringResource(Res.string.change_user_data))
         }
 
-        OutlinedButton(
+        CustomOutlinedButton(
             onClick = onExit,
-            modifier = Modifier.defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
-            shape = RoundedCornerShape(50),
-            border = ButtonDefaults.outlinedButtonBorder().copy(
-                brush = Brush.horizontalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.outline,
-                        MaterialTheme.colorScheme.outline
-                    )
-                )
-            ),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,

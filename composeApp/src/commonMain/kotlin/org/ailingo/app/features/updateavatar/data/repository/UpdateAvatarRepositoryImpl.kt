@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -18,8 +17,6 @@ import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.di.ErrorMapper
 import org.ailingo.app.features.login.data.model.User
 import org.ailingo.app.features.updateavatar.data.model.UpdateAvatarRequest
-import org.ailingo.app.features.updateavatar.data.model.UploadImageRequest
-import org.ailingo.app.features.updateavatar.data.model.UploadImageResponse
 import org.ailingo.app.features.updateavatar.domain.repository.UpdateAvatarRepository
 import kotlin.random.Random
 
@@ -27,22 +24,6 @@ class UpdateAvatarRepositoryImpl(
     private val httpClient: HttpClient,
     private val errorMapper: ErrorMapper
 ) : UpdateAvatarRepository {
-    override fun uploadImage(uploadImageRequest: UploadImageRequest): Flow<UiState<UploadImageResponse>> = flow {
-        emit(UiState.Loading())
-        try {
-            val response = httpClient.post("$BASE_URL/api/v1/upload/image") {
-                contentType(ContentType.Application.Json)
-                setBody(uploadImageRequest)
-            }
-            if (response.status.isSuccess()) {
-                emit(UiState.Success(response.body()))
-            } else {
-                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
-            }
-        } catch (e: Exception) {
-            emit(UiState.Error(errorMapper.mapError(e)))
-        }
-    }
 
     override fun updateUserAvatar(avatarUrl: String): Flow<UiState<User>> = flow {
         emit(UiState.Loading())

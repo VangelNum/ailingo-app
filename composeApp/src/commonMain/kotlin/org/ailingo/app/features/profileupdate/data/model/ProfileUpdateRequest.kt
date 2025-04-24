@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class ProfileUpdateRequest(
     val name: String,
     val email: String,
-    val avatar: String?,
+    val avatarUrl: String?,
     val newPassword: String?,
-    val oldPassword: String
+    val currentPassword: String
 )
