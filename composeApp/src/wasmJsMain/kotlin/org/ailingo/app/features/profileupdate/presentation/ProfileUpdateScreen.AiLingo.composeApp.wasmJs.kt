@@ -1,8 +1,14 @@
 package org.ailingo.app.features.profileupdate.presentation
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-actual suspend fun selectImage(): String? = withContext(Dispatchers.Default) {
-    return@withContext null
+
+@JsName("jsSelectImage")
+private external fun jsSelectImage(callback: (String?) -> Unit)
+
+actual suspend fun selectImage(): String? = suspendCoroutine { continuation ->
+    jsSelectImage { result ->
+        continuation.resume(result)
+    }
 }
