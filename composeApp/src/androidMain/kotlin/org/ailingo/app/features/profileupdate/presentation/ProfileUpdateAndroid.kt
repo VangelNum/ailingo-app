@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Base64
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +42,7 @@ private fun getImagePickerLauncher(
     context: Context,
     onImageSelected: (Uri?) -> Unit
 ): ActivityResultLauncher<Intent> {
-    return (context as? androidx.activity.ComponentActivity)?.registerForActivityResult(
+    return (context as? ComponentActivity)?.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val imageUri: Uri? = result.data?.data
