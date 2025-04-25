@@ -320,12 +320,12 @@ fun AvatarProfile(
         }
     }
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    val modifier = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT)
+            Modifier.fillMaxWidth()
+        else Modifier.defaultMinSize(minWidth = OutlinedTextFieldDefaults.MinWidth)
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .then(if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT)
-                Modifier.fillMaxWidth()
-            else Modifier.defaultMinSize(minWidth = OutlinedTextFieldDefaults.MinWidth))
+        modifier = modifier
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
