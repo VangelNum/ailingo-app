@@ -97,7 +97,7 @@ fun LoginScreen(
             CustomAuthTextField(
                 labelResId = Res.string.email,
                 placeholderResId = Res.string.enter_your_email,
-                value = email.value,
+                value = email.value.trim(),
                 onValueChange = { email.value = it },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusRequesterPassword.requestFocus() }),
@@ -108,12 +108,12 @@ fun LoginScreen(
             CustomAuthTextField(
                 labelResId = Res.string.password,
                 placeholderResId = Res.string.enter_password,
-                value = password.value,
+                value = password.value.trim(),
                 onValueChange = { password.value = it },
                 visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
-                    onEvent(LoginEvent.OnLoginUser(email.value, password.value))
+                    onEvent(LoginEvent.OnLoginUser(email.value.trim(), password.value.trim()))
                 }),
                 focusRequester = focusRequesterPassword,
                 trailingIcon = {

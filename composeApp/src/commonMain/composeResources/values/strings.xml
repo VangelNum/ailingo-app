@@ -128,4 +128,10 @@
     <string name="update_avatar_successful">Avatar successfully updated!</string>
     <string name="error_updating_avatar">Error updating avatar: %s</string>
     <string name="error_loading_image">Error loading image: %s</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="additional">Additional</string>
+    <string name="chat_history">Chat history</string>
+    <string name="leaderboard_is_empty">Leaderboard in empty</string>
+    <string name="chat_history_empty">No chat history found</string>
+    <string name="achievements">Achievements</string>
 </resources>

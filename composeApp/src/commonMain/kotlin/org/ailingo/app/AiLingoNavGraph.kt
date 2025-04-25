@@ -2,6 +2,7 @@ package org.ailingo.app
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.exit
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -44,13 +45,19 @@ import org.ailingo.app.core.presentation.snackbar.ObserveAsEvents
 import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.topappbar.TopAppBarCenter
 import org.ailingo.app.core.presentation.topappbar.TopAppBarWithProfile
+import org.ailingo.app.features.achievements.presentation.AchievementsScreen
+import org.ailingo.app.features.additional.presentation.AdditionalScreen
 import org.ailingo.app.features.buns.presentation.BunsScreen
 import org.ailingo.app.features.chat.presentation.ChatScreen
 import org.ailingo.app.features.chat.presentation.ChatViewModel
+import org.ailingo.app.features.chathistory.presentation.ChatHistoryScreen
+import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryScreen
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryViewModel
 import org.ailingo.app.features.favouritewords.presentation.FavouriteScreen
 import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewModel
+import org.ailingo.app.features.leaderboard.presentation.LeaderboardScreen
+import org.ailingo.app.features.leaderboard.presentation.LeaderboardViewModel
 import org.ailingo.app.features.login.presentation.LoginEvent
 import org.ailingo.app.features.login.presentation.LoginScreen
 import org.ailingo.app.features.login.presentation.LoginViewModel
@@ -92,8 +99,7 @@ fun AiLingoNavGraph(
         }
     }
     NavigationHandler(navController = navController, loginViewModel = loginViewModel)
-    val navigationSuiteState =
-        rememberNavigationSuiteScaffoldState(initialValue = NavigationSuiteScaffoldValue.Hidden)
+    val navigationSuiteState = rememberNavigationSuiteScaffoldState(initialValue = NavigationSuiteScaffoldValue.Hidden)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -123,6 +129,10 @@ fun AiLingoNavGraph(
         ProfilePage::class,
         ProfileUpdatePage::class,
         FavouriteWordsPage::class,
+        LeaderboardPage::class,
+        ChatHistoryPage::class,
+        AdditionalPage::class,
+        AchievementsPage::class,
     )
 
     val isNavigationDrawerVisible = currentDestination?.let { dest ->
@@ -159,9 +169,14 @@ fun AiLingoNavGraph(
                     navigationDrawerContainerColor = Color.White,
                     navigationRailContainerColor = Color.White
                 ),
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier.padding(PaddingValues(top = innerPadding.calculateTopPadding())),
                 navigationSuiteItems = {
-                    screens.forEach {
+                    val screensToShow: List<ScreenInfo> = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED) {
+                        screenForLargePortrait
+                    } else {
+                        screenForCompactPortrait
+                    }
+                    screensToShow.forEach {
                         item(
                             icon = {
                                 Icon(
@@ -187,7 +202,9 @@ fun AiLingoNavGraph(
                             }
                         )
                     }
-                    if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED || adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM) {
+                    if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
+                        || adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
+                    ) {
                         item(
                             icon = {
                                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
@@ -223,8 +240,7 @@ fun AiLingoNavGraph(
                     }
                     composable<TopicsPage> {
                         val topicsViewModel = koinViewModel<TopicViewModel>()
-                        val topicsUiState =
-                            topicsViewModel.topicState.collectAsStateWithLifecycle().value
+                        val topicsUiState = topicsViewModel.topicState.collectAsStateWithLifecycle().value
                         TopicsScreen(
                             topicsUiState = topicsUiState,
                             onTopicClick = { topicName, topicImage ->
@@ -239,12 +255,9 @@ fun AiLingoNavGraph(
                     }
                     composable<ChatPage> { backStackEntry ->
                         val args = backStackEntry.toRoute<ChatPage>()
-                        val chatViewModel: ChatViewModel =
-                            koinViewModel { parametersOf(args.topicName) }
-                        val chatUiState =
-                            chatViewModel.chatState.collectAsStateWithLifecycle().value
-                        val messagesState =
-                            chatViewModel.messages.collectAsStateWithLifecycle().value
+                        val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName) }
+                        val chatUiState = chatViewModel.chatState.collectAsStateWithLifecycle().value
+                        val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
 
                         ChatScreen(
                             topicName = args.topicName,
@@ -276,10 +289,8 @@ fun AiLingoNavGraph(
                     composable<ProfileUpdatePage> {
                         if (loginState is UiState.Success) {
                             val profileUpdateViewModel = koinViewModel<ProfileUpdateViewModel>()
-                            val profileUpdateUiState =
-                                profileUpdateViewModel.profileUpdateUiState.collectAsStateWithLifecycle().value
-                            val uploadAvatarState =
-                                profileUpdateViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
+                            val profileUpdateUiState = profileUpdateViewModel.profileUpdateUiState.collectAsStateWithLifecycle().value
+                            val uploadAvatarState = profileUpdateViewModel.uploadAvatarState.collectAsStateWithLifecycle().value
                             ProfileUpdateScreen(
                                 profileUpdateUiState = profileUpdateUiState,
                                 uploadAvatarState = uploadAvatarState,
@@ -322,8 +333,7 @@ fun AiLingoNavGraph(
                     }
                     composable<FavouriteWordsPage> {
                         val favouriteWordsViewModel = koinViewModel<FavouriteWordsViewModel>()
-                        val favouriteWordsState =
-                            favouriteWordsViewModel.favoriteWords.collectAsStateWithLifecycle().value
+                        val favouriteWordsState = favouriteWordsViewModel.favoriteWords.collectAsStateWithLifecycle().value
                         FavouriteScreen(
                             favouriteWordsState = favouriteWordsState,
                             onNavigateToDictionaryScreen = { word ->
@@ -336,16 +346,11 @@ fun AiLingoNavGraph(
                     }
                     composable<DictionaryPage> { backStackEntry ->
                         val args = backStackEntry.toRoute<DictionaryPage>()
-                        val dictionaryViewModel: DictionaryViewModel =
-                            koinViewModel { parametersOf(args.word) }
-                        val dictionaryState =
-                            dictionaryViewModel.dictionaryUiState.collectAsStateWithLifecycle().value
-                        val searchHistoryState =
-                            dictionaryViewModel.historyOfDictionaryState.collectAsStateWithLifecycle().value
-                        val favoriteDictionaryState =
-                            dictionaryViewModel.favouriteWordsState.collectAsStateWithLifecycle().value
-                        val predictorState =
-                            dictionaryViewModel.predictorState.collectAsStateWithLifecycle().value
+                        val dictionaryViewModel: DictionaryViewModel = koinViewModel { parametersOf(args.word) }
+                        val dictionaryState = dictionaryViewModel.dictionaryUiState.collectAsStateWithLifecycle().value
+                        val searchHistoryState = dictionaryViewModel.historyOfDictionaryState.collectAsStateWithLifecycle().value
+                        val favoriteDictionaryState = dictionaryViewModel.favouriteWordsState.collectAsStateWithLifecycle().value
+                        val predictorState = dictionaryViewModel.predictorState.collectAsStateWithLifecycle().value
                         DictionaryScreen(
                             dictionaryState,
                             searchHistoryState,
@@ -435,6 +440,32 @@ fun AiLingoNavGraph(
                                 popUpTo(0)
                             }
                         })
+                    }
+                    composable<LeaderboardPage> {
+                        val leaderboardViewModel = koinViewModel<LeaderboardViewModel>()
+                        val leaderboardState = leaderboardViewModel.leaderboardState.collectAsStateWithLifecycle().value
+                        LeaderboardScreen(leaderboardState)
+                    }
+                    composable<AdditionalPage> {
+                        AdditionalScreen(
+                            onNavigateToProfile = {
+                                navController.navigate(ProfilePage)
+                            },
+                            onNavigateToLeaderboard = {
+                                navController.navigate(LeaderboardPage)
+                            },
+                            onNavigateToAchievements = {
+                                navController.navigate(AchievementsPage)
+                            }
+                        )
+                    }
+                    composable<ChatHistoryPage> {
+                        val chatHistoryViewModel = koinViewModel<ChatHistoryViewModel>()
+                        val chatHistoryState = chatHistoryViewModel.chatHistoryState.collectAsStateWithLifecycle().value
+                        ChatHistoryScreen(chatHistoryState)
+                    }
+                    composable<AchievementsPage> {
+                        AchievementsScreen()
                     }
                 }
             }

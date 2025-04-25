@@ -36,8 +36,7 @@ class LoginRepositoryImpl(
             }
             if (response.status == HttpStatusCode.OK) {
                 authRepository.saveBasicAuth(encodedCredentials)
-                val user: User = response.body()
-                emit(UiState.Success(user))
+                emit(UiState.Success(response.body()))
             } else {
                 emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
             }

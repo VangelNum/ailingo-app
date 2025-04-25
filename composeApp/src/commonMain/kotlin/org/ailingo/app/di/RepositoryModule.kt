@@ -4,6 +4,8 @@ import org.ailingo.app.features.basicauth.data.repository.AuthRepositoryImpl
 import org.ailingo.app.features.basicauth.domain.repository.AuthRepository
 import org.ailingo.app.features.chat.data.repository.ChatRepositoryImpl
 import org.ailingo.app.features.chat.domain.repository.ChatRepository
+import org.ailingo.app.features.chathistory.data.repository.ChatHistoryRepositoryImpl
+import org.ailingo.app.features.chathistory.domain.repository.ChatHistoryRepository
 import org.ailingo.app.features.dictionary.historysearch.data.repository.DictionarySearchHistoryRepositoryImpl
 import org.ailingo.app.features.dictionary.historysearch.domain.repository.DictionarySearchHistoryRepository
 import org.ailingo.app.features.dictionary.main.data.repository.DictionaryRepositoryImpl
@@ -12,6 +14,8 @@ import org.ailingo.app.features.dictionary.predictor.data.repository.PredictWord
 import org.ailingo.app.features.dictionary.predictor.domain.repository.PredictWordsRepository
 import org.ailingo.app.features.favouritewords.data.repository.FavouriteWordsRepositoryImpl
 import org.ailingo.app.features.favouritewords.domain.repository.FavouriteWordsRepository
+import org.ailingo.app.features.leaderboard.data.repository.LeaderboardRepositoryImpl
+import org.ailingo.app.features.leaderboard.domain.repository.LeaderboardRepository
 import org.ailingo.app.features.login.data.repository.LoginRepositoryImpl
 import org.ailingo.app.features.login.domain.repository.LoginRepository
 import org.ailingo.app.features.profileupdate.data.repository.ProfileUpdateRepositoryImpl
@@ -67,5 +71,11 @@ val repositoryModule = module {
     }
     single<UploadImageRepository> {
         UploadImageRepositoryImpl(get(), get())
+    }
+    single<LeaderboardRepository> {
+        LeaderboardRepositoryImpl(get(), get())
+    }
+    single<ChatHistoryRepository> {
+        ChatHistoryRepositoryImpl(get(), get())
     }
 }

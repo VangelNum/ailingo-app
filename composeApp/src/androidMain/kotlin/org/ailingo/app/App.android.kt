@@ -1,13 +1,12 @@
 package org.ailingo.app
 
 import android.app.Application
-import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import org.ailingo.app.di.initKoin
+import org.ailingo.app.features.profileupdate.presentation.ImagePickerActivityResult
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 
@@ -29,17 +28,16 @@ class AndroidApp : Application() {
 class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(
-                Color.TRANSPARENT, Color.TRANSPARENT
-            ),
-            navigationBarStyle = SystemBarStyle.light(
-                Color.TRANSPARENT, Color.TRANSPARENT
-            )
-        )
+        enableEdgeToEdge()
+        ImagePickerActivityResult.init(activityResultRegistry, this)
         actionBar?.hide()
         setContent {
             App()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ImagePickerActivityResult.release()
     }
 }

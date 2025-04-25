@@ -75,7 +75,7 @@ fun TopAppBarWithProfile(
                     Box(
                         modifier = Modifier
                             .height(TopAppBarDefaults.TopAppBarExpandedHeight)
-                            .width(103.dp)
+                            .width(90.dp)
                             .offset((-16).dp, 0.dp)
                             .background(Color.White)
                     )
@@ -83,7 +83,7 @@ fun TopAppBarWithProfile(
                         painter = painterResource(Res.drawable.logo),
                         contentDescription = null,
                         tint = Color.Black,
-                        modifier = Modifier.padding(top = 10.dp).padding(start = 15.dp)
+                        modifier = Modifier.padding(top = 10.dp).padding(start = 8.dp)
                             .height(40.dp)
                     )
                 }

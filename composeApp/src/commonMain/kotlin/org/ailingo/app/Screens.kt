@@ -1,14 +1,22 @@
 package org.ailingo.app
 
 import ailingo.composeapp.generated.resources.Res
+import ailingo.composeapp.generated.resources.achievements
+import ailingo.composeapp.generated.resources.additional
+import ailingo.composeapp.generated.resources.chat_history
 import ailingo.composeapp.generated.resources.dictionary
 import ailingo.composeapp.generated.resources.favourite_words
+import ailingo.composeapp.generated.resources.leaderboard
 import ailingo.composeapp.generated.resources.profile
 import ailingo.composeapp.generated.resources.topics
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.More
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Topic
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
@@ -20,11 +28,21 @@ data class ScreenInfo(
     val icon: ImageVector
 )
 
-val screens = listOf(
+val screenForLargePortrait = listOf(
     ScreenInfo(TopicsPage, Res.string.topics, Icons.Filled.Topic),
+    ScreenInfo(ChatHistoryPage, Res.string.chat_history, Icons.Filled.History),
     ScreenInfo(DictionaryPage(), Res.string.dictionary, Icons.Filled.Book),
     ScreenInfo(FavouriteWordsPage, Res.string.favourite_words, Icons.Filled.Favorite),
+    ScreenInfo(AchievementsPage, Res.string.achievements, Icons.Filled.Star),
+    ScreenInfo(LeaderboardPage, Res.string.leaderboard, Icons.Filled.Leaderboard),
     ScreenInfo(ProfilePage, Res.string.profile, Icons.Filled.Person)
+)
+
+val screenForCompactPortrait = listOf(
+    ScreenInfo(TopicsPage, Res.string.topics, Icons.Filled.Topic),
+    ScreenInfo(DictionaryPage(), Res.string.dictionary, Icons.Filled.Book),
+    ScreenInfo(ChatHistoryPage, Res.string.chat_history, Icons.Filled.History),
+    ScreenInfo(AdditionalPage, Res.string.additional, Icons.AutoMirrored.Filled.More)
 )
 
 @Serializable
@@ -71,3 +89,15 @@ object UpdateAvatarPage
 
 @Serializable
 object BunsPage
+
+@Serializable
+object LeaderboardPage
+
+@Serializable
+object AdditionalPage
+
+@Serializable
+object ChatHistoryPage
+
+@Serializable
+object AchievementsPage

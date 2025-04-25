@@ -1,8 +1,10 @@
 package org.ailingo.app.di
 
 import org.ailingo.app.features.chat.presentation.ChatViewModel
+import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryViewModel
 import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewModel
+import org.ailingo.app.features.leaderboard.presentation.LeaderboardViewModel
 import org.ailingo.app.features.login.presentation.LoginViewModel
 import org.ailingo.app.features.profileupdate.presentation.ProfileUpdateViewModel
 import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
@@ -28,4 +30,6 @@ val viewModelModule = module {
     viewModel { ProfileUpdateViewModel(get(), get()) }
     viewModel { FavouriteWordsViewModel(get()) }
     viewModel { UpdateAvatarViewModel(get(), get()) }
+    viewModel { LeaderboardViewModel(get()) }
+    viewModel { ChatHistoryViewModel(get()) }
 }

@@ -126,4 +126,10 @@
     <string name="update_avatar_successful">Аватар успешно установлен!</string>
     <string name="error_updating_avatar">Ошибка обновления аватара: %s</string>
     <string name="error_loading_image">Ошибка загрузки изображения: %s</string>
+    <string name="leaderboard">Лидеры</string>
+    <string name="additional">Дополнительно</string>
+    <string name="chat_history">История чатов</string>
+    <string name="leaderboard_is_empty">Список лидеров пуст</string>
+    <string name="chat_history_empty">Нет истории чатов</string>
+    <string name="achievements">Достижения</string>
 </resources>

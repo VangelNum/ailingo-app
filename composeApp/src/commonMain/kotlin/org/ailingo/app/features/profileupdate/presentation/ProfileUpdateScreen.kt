@@ -23,11 +23,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,6 +44,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -58,6 +60,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
 import coil3.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -316,10 +319,13 @@ fun AvatarProfile(
             onUploadNewAvatar(selectedImage.value!!)
         }
     }
-
+    val adaptiveInfo = currentWindowAdaptiveInfo()
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.width(OutlinedTextFieldDefaults.MinWidth)
+        modifier = Modifier
+            .then(if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT)
+                Modifier.fillMaxWidth()
+            else Modifier.defaultMinSize(minWidth = OutlinedTextFieldDefaults.MinWidth))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
