@@ -136,4 +136,15 @@
     <string name="achievements">Achievements</string>
     <string name="topic_is_finished">Topic is finished</string>
     <string name="topic_is_not_finished">Topic is not finished</string>
+    <string name="english">English</string>
+    <string name="russian">Russian</string>
+    <string name="translating">Translating...</string>
+    <string name="translation_error">Translation Error: %s</string>
+    <string name="no_translation">No translation available</string>
+    <string name="close_translation">Close Translation</string>
+    <string name="user_avatar">User Avatar</string>
+    <string name="default_user_avatar">Default User Avatar</string>
+    <string name="ailingo_maskot">Ailingo Maskot</string>
+    <string name="translate">Translate</string>
+    <string name="waiting_for_response">Waiting for response...</string>
 </resources>

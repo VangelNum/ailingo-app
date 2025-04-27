@@ -259,15 +259,17 @@ fun AiLingoNavGraph(
                         val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName, args.chatId) }
                         val chatUiState = chatViewModel.chatState.collectAsStateWithLifecycle().value
                         val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
-
+                        val translateState = chatViewModel.translateState.collectAsStateWithLifecycle().value
                         ChatScreen(
                             topicName = args.topicName,
                             topicImage = args.topicImage,
                             chatUiState = chatUiState,
                             messagesState = messagesState,
+                            translateState = translateState,
                             onEvent = { event ->
                                 chatViewModel.onEvent(event)
-                            }
+                            },
+                            userAvatar = if (loginState is UiState.Success) loginState.data.avatar else null
                         )
                     }
                     composable<ProfilePage> {
@@ -464,11 +466,13 @@ fun AiLingoNavGraph(
                         val chatHistoryViewModel = koinViewModel<ChatHistoryViewModel>()
                         val chatHistoryState = chatHistoryViewModel.chatHistoryState.collectAsStateWithLifecycle().value
                         ChatHistoryScreen(chatHistoryState, onNavigateToSelectedChat = { chatId, topicName, topicImage ->
-                            navController.navigate(ChatPage(
-                                chatId,
-                                topicName,
-                                topicImage
-                            ))
+                            navController.navigate(
+                                ChatPage(
+                                    chatId,
+                                    topicName,
+                                    topicImage
+                                )
+                            )
                         })
                     }
                     composable<AchievementsPage> {

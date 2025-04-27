@@ -134,4 +134,15 @@
     <string name="achievements">Достижения</string>
     <string name="topic_is_finished">Тема завершена</string>
     <string name="topic_is_not_finished">Тема не завершена</string>
+    <string name="english">Английский</string>
+    <string name="russian">Русский</string>
+    <string name="translating">Перевод...</string>
+    <string name="translation_error">Ошибка перевода: %s</string>
+    <string name="no_translation">Перевод недоступен</string>
+    <string name="close_translation">Закрыть перевод</string>
+    <string name="user_avatar">Аватар пользователя</string>
+    <string name="default_user_avatar">Стандартный аватар пользователя</string>
+    <string name="ailingo_maskot">Маскот Ailingo</string>
+    <string name="translate">Перевести</string>
+    <string name="waiting_for_response">Ожидание ответа...</string>
 </resources>

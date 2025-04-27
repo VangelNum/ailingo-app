@@ -1,12 +1,32 @@
 package org.ailingo.app.features.chat.presentation
 
 import ailingo.composeapp.generated.resources.Res
+import ailingo.composeapp.generated.resources.ailingo_maskot
+import ailingo.composeapp.generated.resources.close_translation
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
+import ailingo.composeapp.generated.resources.default_user_avatar
+import ailingo.composeapp.generated.resources.english
 import ailingo.composeapp.generated.resources.maskot
 import ailingo.composeapp.generated.resources.message
+import ailingo.composeapp.generated.resources.no_translation
+import ailingo.composeapp.generated.resources.russian
 import ailingo.composeapp.generated.resources.send_message
+import ailingo.composeapp.generated.resources.translate
+import ailingo.composeapp.generated.resources.translating
+import ailingo.composeapp.generated.resources.translation_error
+import ailingo.composeapp.generated.resources.user_avatar
+import ailingo.composeapp.generated.resources.waiting_for_response
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,18 +47,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,12 +78,14 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import co.touchlab.kermit.Logger
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
+import org.ailingo.app.core.presentation.custom.CustomButton
 import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
 import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
@@ -70,12 +97,14 @@ import org.ailingo.app.getPlatformName
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     topicName: String,
     topicImage: String,
     chatUiState: UiState<MutableList<Conversation>>,
     messagesState: List<Conversation>,
+    translateState: UiState<String>,
     onEvent: (ChatEvents) -> Unit,
     userAvatar: String? = null
 ) {
@@ -83,7 +112,9 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val voiceToTextHandler = rememberVoiceToTextHandler()
     val voiceState by voiceToTextHandler.state.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var selectedText by remember { mutableStateOf("") }
 
     fun sendMessage() {
         messageInput = messageInput.trim()
@@ -112,6 +143,91 @@ fun ChatScreen(
         }
     }
 
+    AnimatedVisibility(sheetState.isVisible) {
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = {
+                scope.launch {
+                    sheetState.hide()
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    selectedText,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
+                ) {
+                    Text(
+                        stringResource(Res.string.english),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            stringResource(Res.string.russian),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(2.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                AnimatedContent(
+                    targetState = translateState,
+                    transitionSpec = {
+                        if (targetState is UiState.Loading) {
+                            fadeIn() togetherWith fadeOut()
+                        } else {
+                            slideInVertically { height -> height } togetherWith
+                                    slideOutVertically { height -> -height }
+                        }.using(
+                            SizeTransform(clip = false)
+                        )
+                    },
+                    label = "translationAnimation"
+                ) { targetState ->
+                    Text(
+                        when (targetState) {
+                            is UiState.Success -> targetState.data
+                            is UiState.Loading -> stringResource(Res.string.translating)
+                            is UiState.Error -> stringResource(Res.string.translation_error, targetState.message)
+                            else -> stringResource(Res.string.no_translation)
+                        },
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                CustomButton(
+                    onClick = {
+                        scope.launch {
+                            sheetState.hide()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(stringResource(Res.string.close_translation))
+                }
+            }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
         Card(
             colors = CardDefaults.cardColors(
@@ -130,7 +246,7 @@ fun ChatScreen(
                 ) {
                     AsyncImage(
                         model = topicImage,
-                        contentDescription = "Topic name",
+                        contentDescription = topicName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -153,19 +269,55 @@ fun ChatScreen(
                 state = listState
             ) {
                 items(messagesState) { message ->
-                    ChatMessageItem(message = message, userAvatar = userAvatar)
+                    ChatMessageItem(
+                        message = message,
+                        userAvatar = userAvatar,
+                        onSuggestionClicked = { suggestion ->
+                            onEvent(ChatEvents.OnSendMessage(suggestion))
+                        },
+                        chatUiState = chatUiState,
+                        onTranslate = { text ->
+                            selectedText = text
+                            onEvent(ChatEvents.OnTranslateText(text))
+                            scope.launch {
+                                sheetState.show()
+                            }
+                        }
+                    )
                 }
                 when (chatUiState) {
                     is UiState.Error -> {
                         item {
-                            ChatMessageItem(message = Conversation(id = "", conversationId = "", content = chatUiState.message, timestamp = "", type = MessageType.BOT.name))
+                            ChatMessageItem(
+                                message = Conversation(
+                                    id = "",
+                                    conversationId = "",
+                                    content = chatUiState.message,
+                                    timestamp = "",
+                                    type = MessageType.BOT.name
+                                ),
+                                onSuggestionClicked = {},
+                                chatUiState = chatUiState,
+                                onTranslate = {}
+                            )
                         }
                     }
 
                     is UiState.Idle -> {}
                     is UiState.Loading -> {
                         item {
-                            ChatMessageItem(message = Conversation(id = "", conversationId = "", content = "Waiting for response...", timestamp = "", type = MessageType.BOT.name))
+                            ChatMessageItem(
+                                message = Conversation(
+                                    id = "",
+                                    conversationId = "",
+                                    content = stringResource(Res.string.waiting_for_response),
+                                    timestamp = "",
+                                    type = MessageType.BOT.name
+                                ),
+                                onSuggestionClicked = {},
+                                chatUiState = chatUiState,
+                                onTranslate = {}
+                            )
                         }
                     }
 
@@ -200,7 +352,7 @@ fun ChatScreen(
                         if (getPlatformName() != PlatformName.Desktop) {
                             IconButton(onClick = {
                                 if (voiceToTextHandler.isAvailable) {
-                                    coroutineScope.launch {
+                                    scope.launch {
                                         if (voiceState is VoiceToTextState.Listening) {
                                             voiceToTextHandler.stopListening()
                                         } else {
@@ -239,6 +391,9 @@ fun ChatScreen(
 fun ChatMessageItem(
     message: Conversation,
     userAvatar: String? = null,
+    onSuggestionClicked: (String) -> Unit,
+    chatUiState: UiState<MutableList<Conversation>>,
+    onTranslate: (String) -> Unit
 ) {
     val isUserMessage = message.type == MessageType.USER.name
     val backgroundColor = if (isUserMessage) {
@@ -279,7 +434,7 @@ fun ChatMessageItem(
                         if (userAvatar != null) {
                             AsyncImage(
                                 model = userAvatar,
-                                contentDescription = "User Avatar",
+                                contentDescription = stringResource(Res.string.user_avatar),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.size(imageSize)
                             )
@@ -287,17 +442,33 @@ fun ChatMessageItem(
                             Image(
                                 painter = painterResource(Res.drawable.defaultProfilePhoto),
                                 modifier = Modifier.size(imageSize),
-                                contentDescription = "Default User Avatar"
+                                contentDescription = stringResource(Res.string.default_user_avatar)
                             )
                         }
                     }
                 } else {
-                    Box(modifier = Modifier.padding(4.dp)) {
-                        Image(
-                            painter = painterResource(Res.drawable.maskot),
-                            modifier = Modifier.size(imageSize),
-                            contentDescription = "Ailingo Maskot"
-                        )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.padding(4.dp)) {
+                            Image(
+                                painter = painterResource(Res.drawable.maskot),
+                                modifier = Modifier.size(imageSize),
+                                contentDescription = stringResource(Res.string.ailingo_maskot)
+                            )
+                        }
+                        AnimatedVisibility(visible = chatUiState is UiState.Success) {
+                            Row(
+                                modifier = Modifier.clickable {
+                                    onTranslate(message.content)
+                                }
+                            ) {
+                                Icon(Icons.Default.Translate, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(Res.string.translate))
+                            }
+                        }
                     }
                 }
                 Text(
@@ -317,6 +488,7 @@ fun ChatMessageItem(
                     .padding(bottom = 2.dp)
                     .align(horizontalAlignment),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 message.suggestions.forEach { suggestion ->
                     Box(
@@ -325,6 +497,12 @@ fun ChatMessageItem(
                                 color = MaterialTheme.colorScheme.surfaceVariant,
                                 shape = RoundedCornerShape(16.dp)
                             )
+                            .clickable {
+                                if (chatUiState is UiState.Success) {
+                                    val extractedText = suggestion.substringAfter(". \"").dropLast(1)
+                                    onSuggestionClicked(extractedText)
+                                }
+                            },
                     ) {
                         Text(
                             text = suggestion,

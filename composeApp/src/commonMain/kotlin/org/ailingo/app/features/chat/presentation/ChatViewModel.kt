@@ -15,16 +15,22 @@ import kotlinx.datetime.toLocalDateTime
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.chat.data.model.Conversation
 import org.ailingo.app.features.chat.domain.repository.ChatRepository
+import org.ailingo.app.features.translate.domain.repository.TranslateRepository
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class ChatViewModel(
     private val chatRepository: ChatRepository,
+    private val translateRepository: TranslateRepository,
     topicName: String,
     chatId: String?
 ) : ViewModel() {
     private val _chatState = MutableStateFlow<UiState<MutableList<Conversation>>>(UiState.Idle())
     val chatState = _chatState.asStateFlow()
+
+    private val _translateState = MutableStateFlow<UiState<String>>(UiState.Idle())
+    val translateState = _translateState.asStateFlow()
+
     private var conversationId by mutableStateOf("")
 
     private val _messages = MutableStateFlow<List<Conversation>>(mutableListOf())
@@ -49,6 +55,15 @@ class ChatViewModel(
             }
 
             is ChatEvents.OnGetMessagesSelectedChat -> getMessagesFromSelectedChat(event.conversationId)
+            is ChatEvents.OnTranslateText -> translateText(event.text)
+        }
+    }
+
+    private fun translateText(text: String) {
+        viewModelScope.launch {
+            translateRepository.translate(text).collect { state->
+                _translateState.value = state
+            }
         }
     }
 

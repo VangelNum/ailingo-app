@@ -26,6 +26,8 @@ import org.ailingo.app.features.registration.domain.repository.RegisterRepositor
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository
 import org.ailingo.app.features.topics.data.repository.TopicRepositoryImpl
 import org.ailingo.app.features.topics.domain.repository.TopicRepository
+import org.ailingo.app.features.translate.data.repository.TranslateRepositoryImpl
+import org.ailingo.app.features.translate.domain.repository.TranslateRepository
 import org.ailingo.app.features.updateavatar.data.repository.UpdateAvatarRepositoryImpl
 import org.ailingo.app.features.updateavatar.domain.repository.UpdateAvatarRepository
 import org.ailingo.app.features.uploadimage.data.repository.UploadImageRepositoryImpl
@@ -77,5 +79,8 @@ val repositoryModule = module {
     }
     single<ChatHistoryRepository> {
         ChatHistoryRepositoryImpl(get(), get())
+    }
+    single<TranslateRepository> {
+        TranslateRepositoryImpl(get(), get())
     }
 }

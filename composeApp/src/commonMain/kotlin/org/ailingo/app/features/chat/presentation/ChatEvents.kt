@@ -5,4 +5,6 @@ sealed class ChatEvents {
     data class OnSendMessage(val message: String) : ChatEvents()
 
     data class OnGetMessagesSelectedChat(val conversationId: String) : ChatEvents()
+
+    data class OnTranslateText(val text: String) : ChatEvents()
 }
