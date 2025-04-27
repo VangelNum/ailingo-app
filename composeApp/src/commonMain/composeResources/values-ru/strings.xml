@@ -118,8 +118,8 @@
     <string name="buns_info">В честь успешной регистрации мы дарим вам 100 монет!</string>
     <string name="update_avatar_successful_registration">Успешная регистрация</string>
     <string name="update_avatar_lets_set_photo">Давайте установим фото</string>
-    <string name="update_avatar_choose_generate">Выберите или сгенерируйте</string>
-    <string name="update_avatar_choose_photo">Выбрать фото</string>
+    <string name="update_avatar_choose_generate">Загрузите свое или сгенерируйте</string>
+    <string name="update_avatar_choose_photo">Загрузить свое фото</string>
     <string name="update_avatar_proceed">Продолжить</string>
     <string name="update_avatar_generate_other">Сгенерировать другие</string>
     <string name="image_uploaded_successfully">Изображение успешно загружено!</string>

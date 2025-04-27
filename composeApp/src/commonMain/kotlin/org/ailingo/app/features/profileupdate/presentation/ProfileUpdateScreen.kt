@@ -23,12 +23,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -322,7 +322,7 @@ fun AvatarProfile(
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val modifier = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT)
             Modifier.fillMaxWidth()
-        else Modifier.defaultMinSize(minWidth = OutlinedTextFieldDefaults.MinWidth)
+        else Modifier.width(OutlinedTextFieldDefaults.MinWidth)
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = modifier

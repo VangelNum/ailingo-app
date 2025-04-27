@@ -120,8 +120,8 @@
     <string name="buns_info">In honor of successful registration, we give you 100 coins</string>
     <string name="update_avatar_successful_registration">Successful Registration</string>
     <string name="update_avatar_lets_set_photo">Let's set a profile photo</string>
-    <string name="update_avatar_choose_generate">Choose or Generate</string>
-    <string name="update_avatar_choose_photo">Choose Photo</string>
+    <string name="update_avatar_choose_generate">Upload yours or Generate</string>
+    <string name="update_avatar_choose_photo">Upload your photo</string>
     <string name="update_avatar_proceed">Proceed</string>
     <string name="update_avatar_generate_other">Generate Other</string>
     <string name="image_uploaded_successfully">Image uploaded successfully!</string>
