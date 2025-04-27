@@ -19,7 +19,7 @@ class ChatHistoryRepositoryImpl(
     override fun getConversations(): Flow<UiState<List<ConversationHistory>>> = flow {
         emit(UiState.Loading())
         try {
-            val response = httpClient.get("$BASE_URL/api/v1/conversations")
+            val response = httpClient.get("$BASE_URL/api/v1/conversations/all")
             if (response.status.isSuccess()) {
                 emit(UiState.Success(response.body()))
             } else {

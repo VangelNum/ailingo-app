@@ -3,6 +3,7 @@ package org.ailingo.app.features.chat.data.repository
 import AiLingo.composeApp.BuildConfig.BASE_URL
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -47,6 +48,20 @@ class ChatRepositoryImpl(
             }
             if (response.status.isSuccess()) {
                 emit(UiState.Success(response.body<Conversation>()))
+            } else {
+                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorMapper.mapError(e)))
+        }
+    }
+
+    override fun getMessagesFromSelectedChat(conversationId: String): Flow<UiState<List<Conversation>>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response = httpClient.get("$BASE_URL/api/v1/conversations/${conversationId}")
+            if (response.status.isSuccess()) {
+                emit(UiState.Success(response.body()))
             } else {
                 emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
             }

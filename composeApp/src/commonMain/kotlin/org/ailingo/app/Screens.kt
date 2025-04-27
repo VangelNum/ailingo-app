@@ -50,6 +50,7 @@ object LoginPage
 
 @Serializable
 data class ChatPage(
+    val chatId: String?,
     val topicName: String,
     val topicImage: String
 )

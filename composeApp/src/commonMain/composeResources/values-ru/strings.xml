@@ -132,4 +132,6 @@
     <string name="leaderboard_is_empty">Список лидеров пуст</string>
     <string name="chat_history_empty">Нет истории чатов</string>
     <string name="achievements">Достижения</string>
+    <string name="topic_is_finished">Тема завершена</string>
+    <string name="topic_is_not_finished">Тема не завершена</string>
 </resources>

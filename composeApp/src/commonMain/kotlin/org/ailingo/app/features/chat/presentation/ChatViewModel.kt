@@ -20,7 +20,8 @@ import kotlin.uuid.Uuid
 
 class ChatViewModel(
     private val chatRepository: ChatRepository,
-    topicName: String
+    topicName: String,
+    chatId: String?
 ) : ViewModel() {
     private val _chatState = MutableStateFlow<UiState<MutableList<Conversation>>>(UiState.Idle())
     val chatState = _chatState.asStateFlow()
@@ -30,7 +31,11 @@ class ChatViewModel(
     val messages = _messages.asStateFlow()
 
     init {
-        onEvent(ChatEvents.OnStartConversation(topicName))
+        if (chatId == null) {
+            onEvent(ChatEvents.OnStartConversation(topicName))
+        } else {
+            onEvent(ChatEvents.OnGetMessagesSelectedChat(chatId))
+        }
     }
 
     fun onEvent(event: ChatEvents) {
@@ -41,6 +46,22 @@ class ChatViewModel(
 
             is ChatEvents.OnSendMessage -> {
                 sendMessage(conversationId = conversationId, message = event.message)
+            }
+
+            is ChatEvents.OnGetMessagesSelectedChat -> getMessagesFromSelectedChat(event.conversationId)
+        }
+    }
+
+    private fun getMessagesFromSelectedChat(conversationId: String) {
+        this.conversationId = conversationId
+
+        viewModelScope.launch {
+            chatRepository.getMessagesFromSelectedChat(conversationId).collect { state ->
+                if (state is UiState.Success) {
+                    _messages.value = state.data
+                } else if (state is UiState.Error) {
+                    _chatState.value = UiState.Error(state.message)
+                }
             }
         }
     }

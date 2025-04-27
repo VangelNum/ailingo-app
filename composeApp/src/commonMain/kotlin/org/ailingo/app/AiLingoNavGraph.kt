@@ -246,6 +246,7 @@ fun AiLingoNavGraph(
                             onTopicClick = { topicName, topicImage ->
                                 navController.navigate(
                                     ChatPage(
+                                        chatId = null,
                                         topicName = topicName,
                                         topicImage = topicImage
                                     )
@@ -255,7 +256,7 @@ fun AiLingoNavGraph(
                     }
                     composable<ChatPage> { backStackEntry ->
                         val args = backStackEntry.toRoute<ChatPage>()
-                        val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName) }
+                        val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName, args.chatId) }
                         val chatUiState = chatViewModel.chatState.collectAsStateWithLifecycle().value
                         val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
 
@@ -462,7 +463,13 @@ fun AiLingoNavGraph(
                     composable<ChatHistoryPage> {
                         val chatHistoryViewModel = koinViewModel<ChatHistoryViewModel>()
                         val chatHistoryState = chatHistoryViewModel.chatHistoryState.collectAsStateWithLifecycle().value
-                        ChatHistoryScreen(chatHistoryState)
+                        ChatHistoryScreen(chatHistoryState, onNavigateToSelectedChat = { chatId, topicName, topicImage ->
+                            navController.navigate(ChatPage(
+                                chatId,
+                                topicName,
+                                topicImage
+                            ))
+                        })
                     }
                     composable<AchievementsPage> {
                         AchievementsScreen()

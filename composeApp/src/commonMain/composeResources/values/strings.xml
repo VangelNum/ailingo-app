@@ -134,4 +134,6 @@
     <string name="leaderboard_is_empty">Leaderboard in empty</string>
     <string name="chat_history_empty">No chat history found</string>
     <string name="achievements">Achievements</string>
+    <string name="topic_is_finished">Topic is finished</string>
+    <string name="topic_is_not_finished">Topic is not finished</string>
 </resources>

@@ -16,7 +16,7 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { LoginViewModel(get(), get()) }
     viewModel { RegisterUserViewModel(get(), get()) }
-    factory { (topicName: String) -> ChatViewModel(get(), topicName) }
+    factory { (topicName: String, chatId: String) -> ChatViewModel(get(), topicName, chatId) }
     factory { (word: String) ->
         DictionaryViewModel(
             get(),

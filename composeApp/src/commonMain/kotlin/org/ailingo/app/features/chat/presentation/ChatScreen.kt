@@ -6,9 +6,11 @@ import ailingo.composeapp.generated.resources.maskot
 import ailingo.composeapp.generated.resources.message
 import ailingo.composeapp.generated.resources.send_message
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,10 +67,8 @@ import org.ailingo.app.core.utils.voice.rememberVoiceToTextHandler
 import org.ailingo.app.features.chat.data.model.Conversation
 import org.ailingo.app.features.chat.presentation.model.MessageType
 import org.ailingo.app.getPlatformName
-import org.ailingo.app.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ChatScreen(
@@ -236,7 +236,10 @@ fun ChatScreen(
 }
 
 @Composable
-fun ChatMessageItem(message: Conversation, userAvatar: String? = null) {
+fun ChatMessageItem(
+    message: Conversation,
+    userAvatar: String? = null,
+) {
     val isUserMessage = message.type == MessageType.USER.name
     val backgroundColor = if (isUserMessage) {
         MaterialTheme.colorScheme.primaryContainer
@@ -244,11 +247,13 @@ fun ChatMessageItem(message: Conversation, userAvatar: String? = null) {
         MaterialTheme.colorScheme.secondaryContainer
     }
     val horizontalAlignment = if (isUserMessage) Alignment.End else Alignment.Start
+
     val startPadding = if (isUserMessage) 52.dp else 0.dp
     val endPadding = if (isUserMessage) 0.dp else 52.dp
     val timestampStartPadding = if (isUserMessage) 0.dp else 8.dp
     val timestampEndPadding = if (isUserMessage) 8.dp else 0.dp
     val imageSize = 32.dp
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = horizontalAlignment
@@ -267,27 +272,22 @@ fun ChatMessageItem(message: Conversation, userAvatar: String? = null) {
         ) {
             Column {
                 if (isUserMessage) {
-                    if (userAvatar != null) {
-                        Card(
-                            shape = CircleShape,
-                            modifier = Modifier.align(Alignment.End).padding(end = 4.dp, top = 4.dp),
-                        ) {
+                    Card(
+                        shape = CircleShape,
+                        modifier = Modifier.align(Alignment.End).padding(end = 4.dp, top = 4.dp),
+                    ) {
+                        if (userAvatar != null) {
                             AsyncImage(
                                 model = userAvatar,
-                                null,
+                                contentDescription = "User Avatar",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.size(imageSize)
                             )
-                        }
-                    } else {
-                        Card(
-                            shape = CircleShape,
-                            modifier = Modifier.align(Alignment.End).padding(end = 4.dp, top = 4.dp),
-                        ) {
+                        } else {
                             Image(
                                 painter = painterResource(Res.drawable.defaultProfilePhoto),
                                 modifier = Modifier.size(imageSize),
-                                contentDescription = null
+                                contentDescription = "Default User Avatar"
                             )
                         }
                     }
@@ -296,7 +296,7 @@ fun ChatMessageItem(message: Conversation, userAvatar: String? = null) {
                         Image(
                             painter = painterResource(Res.drawable.maskot),
                             modifier = Modifier.size(imageSize),
-                            contentDescription = null
+                            contentDescription = "Ailingo Maskot"
                         )
                     }
                 }
@@ -306,8 +306,37 @@ fun ChatMessageItem(message: Conversation, userAvatar: String? = null) {
                 )
             }
         }
-        val displayTimestamp = formatTimestamp(message.timestamp)
 
+        Spacer(modifier = Modifier.height(2.dp))
+
+        if (!isUserMessage && !message.suggestions.isNullOrEmpty()) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = endPadding)
+                    .padding(bottom = 2.dp)
+                    .align(horizontalAlignment),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                message.suggestions.forEach { suggestion ->
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                    ) {
+                        Text(
+                            text = suggestion,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+        val displayTimestamp = formatTimestamp(message.timestamp)
         Text(
             text = displayTimestamp,
             style = MaterialTheme.typography.labelSmall,
@@ -328,46 +357,5 @@ fun formatTimestamp(timestampString: String): String {
         "$datePart $timePart".trim()
     } else {
         ""
-    }
-}
-
-@Composable
-@Preview
-fun PreviewChatScreen() {
-    AppTheme {
-        val previewMessages = mutableListOf(
-            Conversation("1", "conv1", "Hello!", "2024-07-20T10:00:00Z", "USER"),
-            Conversation(
-                "2",
-                "conv1",
-                "Hi there! How can I help you today?",
-                "2024-07-20T10:00:30Z",
-                "BOT"
-            ),
-            Conversation(
-                "3",
-                "conv1",
-                "I have a question about...",
-                "2024-07-20T10:01:00Z",
-                "USER"
-            ),
-            Conversation(
-                "4",
-                "conv1",
-                "Okay, I'm listening. Please tell me your question.",
-                "2024-07-20T10:01:30Z",
-                "BOT"
-            ),
-            Conversation("5", "conv1", "It's about...", "2024-07-20T10:02:00Z", "USER"),
-            Conversation("6", "conv1", "Let me see...", "2024-07-20T10:02:30Z", "BOT"),
-            Conversation("7", "conv1", "And another question...", "2024-07-20T10:03:00Z", "USER")
-        )
-        ChatScreen(
-            topicName = "Name",
-            topicImage = "",
-            chatUiState = UiState.Success(previewMessages),
-            messagesState = previewMessages,
-            onEvent = { }
-        )
     }
 }
