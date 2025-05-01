@@ -9,4 +9,6 @@ interface ChatRepository {
     fun sendMessage(conversationId: String, message: String): Flow<UiState<Conversation>>
     
     fun getMessagesFromSelectedChat(conversationId: String): Flow<UiState<List<Conversation>>>
+
+    fun checkSingleMessage(userMessage: String): Flow<UiState<String>>
 }

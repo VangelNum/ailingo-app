@@ -4,7 +4,6 @@ import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
 import ailingo.composeapp.generated.resources.emptystate
-import ailingo.composeapp.generated.resources.leaderboard
 import ailingo.composeapp.generated.resources.leaderboard_is_empty
 import ailingo.composeapp.generated.resources.loadingstate
 import ailingo.composeapp.generated.resources.streak
@@ -25,7 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -42,7 +42,6 @@ import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.leaderboard.data.model.Leaderboard
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LeaderboardScreen(
@@ -68,13 +67,6 @@ fun LeaderboardScreen(
                     contentPadding = PaddingValues(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    stickyHeader {
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(Res.string.leaderboard), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.fillMaxWidth().padding(8.dp))
-                        }
-                    }
                     itemsIndexed(leaders) { index, leader ->
                         LeaderboardItem(rank = index + 1, leaderboard = leader)
                     }
@@ -88,9 +80,22 @@ fun LeaderboardScreen(
 
 @Composable
 fun LeaderboardItem(rank: Int, leaderboard: Leaderboard) {
+    val isTopThree = rank <= 3
+    val backgroundColor = if (isTopThree) {
+        when (rank) {
+            1 -> Color(0xFFFFE0B2) // Пастельный золотой
+            2 -> Color(0xFFE0E0E0) // Пастельный серебряный
+            3 -> Color(0xFFD2B48C) // Пастельный бронзовый
+            else -> MaterialTheme.colorScheme.onSecondary
+        }
+    } else {
+        MaterialTheme.colorScheme.onSecondary
+    }
+
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Row(
             modifier = Modifier
@@ -105,7 +110,8 @@ fun LeaderboardItem(rank: Int, leaderboard: Leaderboard) {
             ) {
                 Text(
                     text = "$rank.",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (isTopThree) FontWeight.Bold else FontWeight.Normal
                 )
                 Card(
                     shape = CircleShape,
@@ -115,21 +121,25 @@ fun LeaderboardItem(rank: Int, leaderboard: Leaderboard) {
                         Image(
                             painter = painterResource(Res.drawable.defaultProfilePhoto),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().border(
-                                1.dp,
-                                Color.Black,
-                                CircleShape
-                            )
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .border(
+                                    1.dp,
+                                    Color.Black,
+                                    CircleShape
+                                )
                         )
                     } else {
                         AsyncImage(
                             model = leaderboard.avatar,
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().border(
-                                1.dp,
-                                Color.Black,
-                                CircleShape
-                            ),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .border(
+                                    1.dp,
+                                    Color.Black,
+                                    CircleShape
+                                ),
                             placeholder = rememberVectorPainter(Icons.Default.EmojiEvents),
                             error = rememberVectorPainter(Icons.Default.EmojiEvents),
                         )
@@ -137,7 +147,8 @@ fun LeaderboardItem(rank: Int, leaderboard: Leaderboard) {
                 }
                 Text(
                     text = leaderboard.name,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (isTopThree) FontWeight.Bold else FontWeight.Normal
                 )
             }
 
@@ -147,13 +158,15 @@ fun LeaderboardItem(rank: Int, leaderboard: Leaderboard) {
             ) {
                 Text(
                     text = "${leaderboard.coins}",
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontWeight = if (isTopThree) FontWeight.Bold else FontWeight.Normal
                 )
                 Image(painter = painterResource(Res.drawable.coins), modifier = Modifier.size(24.dp), contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "${leaderboard.streak}",
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontWeight = if (isTopThree) FontWeight.Bold else FontWeight.Normal
                 )
                 Image(painter = painterResource(Res.drawable.streak), modifier = Modifier.size(24.dp), contentDescription = null)
             }

@@ -145,4 +145,11 @@
     <string name="ailingo_maskot">Маскот Ailingo</string>
     <string name="translate">Перевести</string>
     <string name="waiting_for_response">Ожидание ответа...</string>
+    <string name="suggestions_to_improve">Предложения по улучшению следующего сообщения:</string>
+    <string name="checking">Проверяем, что можно улучшить...</string>
+    <string name="error_checking_improvements">Ошибка при проверке улучшений: {0}</string>
+    <string name="no_suggestions_available">Нет доступных предложений.</string>
+    <string name="close">Закрыть</string>
+    <string name="what_can_be_improved">Что можно улучшить?</string>
+
 </resources>

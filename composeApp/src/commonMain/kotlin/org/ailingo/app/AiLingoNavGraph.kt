@@ -260,12 +260,14 @@ fun AiLingoNavGraph(
                         val chatUiState = chatViewModel.chatState.collectAsStateWithLifecycle().value
                         val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
                         val translateState = chatViewModel.translateState.collectAsStateWithLifecycle().value
+                        val singleMessageCheckState = chatViewModel.singleMessageCheckState.collectAsStateWithLifecycle().value
                         ChatScreen(
                             topicName = args.topicName,
                             topicImage = args.topicImage,
                             chatUiState = chatUiState,
                             messagesState = messagesState,
                             translateState = translateState,
+                            singleMessageCheckState = singleMessageCheckState,
                             onEvent = { event ->
                                 chatViewModel.onEvent(event)
                             },

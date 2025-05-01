@@ -69,4 +69,20 @@ class ChatRepositoryImpl(
             emit(UiState.Error(errorMapper.mapError(e)))
         }
     }
+
+    override fun checkSingleMessage(userMessage: String): Flow<UiState<String>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response = httpClient.post("$BASE_URL/api/v1/conversations/grammarCheck") {
+                setBody(userMessage)
+            }
+            if (response.status.isSuccess()) {
+                emit(UiState.Success(response.body()))
+            } else {
+                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorMapper.mapError(e)))
+        }
+    }
 }

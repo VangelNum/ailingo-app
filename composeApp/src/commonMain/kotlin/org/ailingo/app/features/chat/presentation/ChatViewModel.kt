@@ -36,6 +36,9 @@ class ChatViewModel(
     private val _messages = MutableStateFlow<List<Conversation>>(mutableListOf())
     val messages = _messages.asStateFlow()
 
+    private val _singleMessageCheckState = MutableStateFlow<UiState<String>>(UiState.Idle())
+    val singleMessageCheckState = _singleMessageCheckState.asStateFlow()
+
     init {
         if (chatId == null) {
             onEvent(ChatEvents.OnStartConversation(topicName))
@@ -56,6 +59,15 @@ class ChatViewModel(
 
             is ChatEvents.OnGetMessagesSelectedChat -> getMessagesFromSelectedChat(event.conversationId)
             is ChatEvents.OnTranslateText -> translateText(event.text)
+            is ChatEvents.OnCheckSingleMessage -> checkSingleMessage(event.userInput)
+        }
+    }
+
+    private fun checkSingleMessage(message: String) {
+        viewModelScope.launch {
+            chatRepository.checkSingleMessage(message).collect { state ->
+                _singleMessageCheckState.value = state
+            }
         }
     }
 
@@ -148,7 +160,6 @@ class ChatViewModel(
             }
         }
     }
-
 
     @Suppress("MemberExtensionConflict")
     @OptIn(ExperimentalUuidApi::class)

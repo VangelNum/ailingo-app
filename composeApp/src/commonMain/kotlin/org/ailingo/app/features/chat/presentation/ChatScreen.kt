@@ -2,20 +2,26 @@ package org.ailingo.app.features.chat.presentation
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.ailingo_maskot
+import ailingo.composeapp.generated.resources.checking
+import ailingo.composeapp.generated.resources.close
 import ailingo.composeapp.generated.resources.close_translation
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
 import ailingo.composeapp.generated.resources.default_user_avatar
 import ailingo.composeapp.generated.resources.english
+import ailingo.composeapp.generated.resources.error_checking_improvements
 import ailingo.composeapp.generated.resources.maskot
 import ailingo.composeapp.generated.resources.message
+import ailingo.composeapp.generated.resources.no_suggestions_available
 import ailingo.composeapp.generated.resources.no_translation
 import ailingo.composeapp.generated.resources.russian
 import ailingo.composeapp.generated.resources.send_message
+import ailingo.composeapp.generated.resources.suggestions_to_improve
 import ailingo.composeapp.generated.resources.translate
 import ailingo.composeapp.generated.resources.translating
 import ailingo.composeapp.generated.resources.translation_error
 import ailingo.composeapp.generated.resources.user_avatar
 import ailingo.composeapp.generated.resources.waiting_for_response
+import ailingo.composeapp.generated.resources.what_can_be_improved
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -43,9 +49,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Mic
@@ -59,6 +67,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -67,6 +76,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,6 +115,7 @@ fun ChatScreen(
     chatUiState: UiState<MutableList<Conversation>>,
     messagesState: List<Conversation>,
     translateState: UiState<String>,
+    singleMessageCheckState: UiState<String>,
     onEvent: (ChatEvents) -> Unit,
     userAvatar: String? = null
 ) {
@@ -115,6 +126,15 @@ fun ChatScreen(
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedText by remember { mutableStateOf("") }
+
+    val isConversationFinished by remember(messagesState) {
+        derivedStateOf {
+            messagesState.any { it.type == "FINAL" }
+        }
+    }
+
+    var showSingleMessageImprovements by remember { mutableStateOf(false) }
+    var messageToImprove by remember { mutableStateOf("") }
 
     fun sendMessage() {
         messageInput = messageInput.trim()
@@ -139,7 +159,9 @@ fun ChatScreen(
 
     LaunchedEffect(messagesState) {
         if (messagesState.isNotEmpty()) {
-            listState.scrollToItem(messagesState.size - 1)
+            if (!isConversationFinished) {
+                listState.scrollToItem(messagesState.size - 1)
+            }
         }
     }
 
@@ -153,7 +175,7 @@ fun ChatScreen(
             }
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp)
             ) {
                 Text(
                     selectedText,
@@ -228,6 +250,66 @@ fun ChatScreen(
         }
     }
 
+    AnimatedVisibility(showSingleMessageImprovements) {
+        ModalBottomSheet(
+            onDismissRequest = { showSingleMessageImprovements = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    stringResource(Res.string.suggestions_to_improve),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    messageToImprove,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AnimatedContent(
+                    targetState = singleMessageCheckState,
+                    transitionSpec = {
+                        if (targetState is UiState.Loading) {
+                            fadeIn() togetherWith fadeOut()
+                        } else {
+                            slideInVertically { height -> height } togetherWith
+                                    slideOutVertically { height -> -height }
+                        }.using(
+                            SizeTransform(clip = false)
+                        )
+                    },
+                    label = "improvementAnimation"
+                ) { targetState ->
+                    Text(
+                        when (targetState) {
+                            is UiState.Success -> targetState.data
+                            is UiState.Loading -> stringResource(Res.string.checking)
+                            is UiState.Error -> stringResource(Res.string.error_checking_improvements, targetState.message)
+                            else -> stringResource(Res.string.no_suggestions_available)
+                        },
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                CustomButton(
+                    onClick = { showSingleMessageImprovements = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(stringResource(Res.string.close))
+                }
+            }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
         Card(
             colors = CardDefaults.cardColors(
@@ -282,105 +364,119 @@ fun ChatScreen(
                             scope.launch {
                                 sheetState.show()
                             }
+                        },
+                        isConversationFinished = isConversationFinished,
+                        onImproveMessage = { messageContent ->
+                            messageToImprove = messageContent
+                            onEvent(ChatEvents.OnCheckSingleMessage(messageContent))
+                            showSingleMessageImprovements = true
                         }
                     )
                 }
-                when (chatUiState) {
-                    is UiState.Error -> {
-                        item {
-                            ChatMessageItem(
-                                message = Conversation(
-                                    id = "",
-                                    conversationId = "",
-                                    content = chatUiState.message,
-                                    timestamp = "",
-                                    type = MessageType.BOT.name
-                                ),
-                                onSuggestionClicked = {},
-                                chatUiState = chatUiState,
-                                onTranslate = {}
-                            )
+                if (!isConversationFinished) {
+                    when (chatUiState) {
+                        is UiState.Error -> {
+                            item {
+                                ChatMessageItem(
+                                    message = Conversation(
+                                        id = "",
+                                        conversationId = "",
+                                        content = chatUiState.message,
+                                        timestamp = "",
+                                        type = MessageType.BOT.name
+                                    ),
+                                    onSuggestionClicked = {},
+                                    chatUiState = chatUiState,
+                                    onTranslate = {},
+                                    isConversationFinished = isConversationFinished,
+                                    onImproveMessage = {}
+                                )
+                            }
                         }
-                    }
 
-                    is UiState.Idle -> {}
-                    is UiState.Loading -> {
-                        item {
-                            ChatMessageItem(
-                                message = Conversation(
-                                    id = "",
-                                    conversationId = "",
-                                    content = stringResource(Res.string.waiting_for_response),
-                                    timestamp = "",
-                                    type = MessageType.BOT.name
-                                ),
-                                onSuggestionClicked = {},
-                                chatUiState = chatUiState,
-                                onTranslate = {}
-                            )
+                        is UiState.Idle -> {}
+                        is UiState.Loading -> {
+                            item {
+                                ChatMessageItem(
+                                    message = Conversation(
+                                        id = "",
+                                        conversationId = "",
+                                        content = stringResource(Res.string.waiting_for_response),
+                                        timestamp = "",
+                                        type = MessageType.BOT.name
+                                    ),
+                                    onSuggestionClicked = {},
+                                    chatUiState = chatUiState,
+                                    onTranslate = {},
+                                    isConversationFinished = isConversationFinished,
+                                    onImproveMessage = {}
+                                )
+                            }
                         }
-                    }
 
-                    is UiState.Success -> {}
+                        is UiState.Success -> {}
+                    }
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = messageInput,
-                    onValueChange = { messageInput = it },
+            AnimatedVisibility(!isConversationFinished) {
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .onKeyEvent { event ->
-                            if (event.key == Key.Enter && chatUiState !is UiState.Loading) {
-                                sendMessage()
-                                return@onKeyEvent true
-                            }
-                            false
-                        },
-                    placeholder = { Text(stringResource(Res.string.message)) },
-                    shape = RoundedCornerShape(32.dp),
-                    maxLines = 3,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    trailingIcon = {
-                        //TODO ON DESKTOP
-                        if (getPlatformName() != PlatformName.Desktop) {
-                            IconButton(onClick = {
-                                if (voiceToTextHandler.isAvailable) {
-                                    scope.launch {
-                                        if (voiceState is VoiceToTextState.Listening) {
-                                            voiceToTextHandler.stopListening()
-                                        } else {
-                                            messageInput = ""
-                                            voiceToTextHandler.startListening()
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = messageInput,
+                        onValueChange = { messageInput = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .onKeyEvent { event ->
+                                if (event.key == Key.Enter && chatUiState !is UiState.Loading) {
+                                    sendMessage()
+                                    return@onKeyEvent true
+                                }
+                                false
+                            },
+                        placeholder = { Text(stringResource(Res.string.message)) },
+                        shape = RoundedCornerShape(32.dp),
+                        maxLines = 3,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        trailingIcon = {
+                            //TODO ON DESKTOP
+                            if (getPlatformName() != PlatformName.Desktop) {
+                                IconButton(onClick = {
+                                    if (voiceToTextHandler.isAvailable) {
+                                        scope.launch {
+                                            if (voiceState is VoiceToTextState.Listening) {
+                                                voiceToTextHandler.stopListening()
+                                            } else {
+                                                messageInput = ""
+                                                voiceToTextHandler.startListening()
+                                            }
                                         }
                                     }
-                                }
-                            }) {
-                                if (voiceState is VoiceToTextState.Listening) {
-                                    Icon(imageVector = Icons.Filled.Mic, contentDescription = "mic")
-                                } else {
-                                    Icon(imageVector = Icons.Filled.MicOff, contentDescription = "mic")
+                                }) {
+                                    if (voiceState is VoiceToTextState.Listening) {
+                                        Icon(imageVector = Icons.Filled.Mic, contentDescription = "mic")
+                                    } else {
+                                        Icon(imageVector = Icons.Filled.MicOff, contentDescription = "mic")
+                                    }
                                 }
                             }
                         }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            sendMessage()
+                        },
+                        enabled = chatUiState !is UiState.Loading,
+                        modifier = Modifier.height(OutlinedTextFieldDefaults.MinHeight),
+                        shape = RoundedCornerShape(32.dp)
+                    ) {
+                        Text(stringResource(Res.string.send_message))
                     }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(
-                    onClick = {
-                        sendMessage()
-                    },
-                    enabled = chatUiState !is UiState.Loading,
-                    modifier = Modifier.height(OutlinedTextFieldDefaults.MinHeight),
-                    shape = RoundedCornerShape(32.dp)
-                ) {
-                    Text(stringResource(Res.string.send_message))
                 }
             }
         }
@@ -393,7 +489,9 @@ fun ChatMessageItem(
     userAvatar: String? = null,
     onSuggestionClicked: (String) -> Unit,
     chatUiState: UiState<MutableList<Conversation>>,
-    onTranslate: (String) -> Unit
+    onTranslate: (String) -> Unit,
+    isConversationFinished: Boolean = false,
+    onImproveMessage: (String) -> Unit
 ) {
     val isUserMessage = message.type == MessageType.USER.name
     val backgroundColor = if (isUserMessage) {
@@ -427,23 +525,33 @@ fun ChatMessageItem(
         ) {
             Column {
                 if (isUserMessage) {
-                    Card(
-                        shape = CircleShape,
-                        modifier = Modifier.align(Alignment.End).padding(end = 4.dp, top = 4.dp),
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        modifier = Modifier.padding(start = 4.dp).clickable {
+                            onImproveMessage(message.content)
+                        }
                     ) {
-                        if (userAvatar != null) {
-                            AsyncImage(
-                                model = userAvatar,
-                                contentDescription = stringResource(Res.string.user_avatar),
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(imageSize)
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(Res.drawable.defaultProfilePhoto),
-                                modifier = Modifier.size(imageSize),
-                                contentDescription = stringResource(Res.string.default_user_avatar)
-                            )
+                        Text(stringResource(Res.string.what_can_be_improved))
+
+                        Card(
+                            shape = CircleShape,
+                            modifier = Modifier.padding(end = 4.dp, top = 4.dp),
+                        ) {
+                            if (userAvatar != null) {
+                                AsyncImage(
+                                    model = userAvatar,
+                                    contentDescription = stringResource(Res.string.user_avatar),
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(imageSize)
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(Res.drawable.defaultProfilePhoto),
+                                    modifier = Modifier.size(imageSize),
+                                    contentDescription = stringResource(Res.string.default_user_avatar)
+                                )
+                            }
                         }
                     }
                 } else {
@@ -458,7 +566,7 @@ fun ChatMessageItem(
                                 contentDescription = stringResource(Res.string.ailingo_maskot)
                             )
                         }
-                        AnimatedVisibility(visible = chatUiState is UiState.Success) {
+                        AnimatedVisibility(visible = chatUiState is UiState.Success || chatUiState is UiState.Idle) {
                             Row(
                                 modifier = Modifier.clickable {
                                     onTranslate(message.content)
@@ -480,7 +588,7 @@ fun ChatMessageItem(
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        if (!isUserMessage && !message.suggestions.isNullOrEmpty()) {
+        if (!isUserMessage && !message.suggestions.isNullOrEmpty() && !isConversationFinished) {
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -504,12 +612,30 @@ fun ChatMessageItem(
                                 }
                             },
                     ) {
-                        Text(
-                            text = suggestion,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = suggestion,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
+                            )
+                            OutlinedCard(
+                                modifier = Modifier.clickable {
+                                    onTranslate(suggestion)
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Filled.Translate,
+                                    contentDescription = stringResource(Res.string.translate),
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .size(18.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
