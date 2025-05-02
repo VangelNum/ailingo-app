@@ -6,8 +6,6 @@ import kotlinx.serialization.Serializable
 data class IssuesMessage(
     val type: String,
     val text: String,
-    val description: String,
-    val suggestion: String?,
-    val startOffset: Int,
-    val endOffset: Int
+    val description: String?,
+    val suggestion: String?
 )

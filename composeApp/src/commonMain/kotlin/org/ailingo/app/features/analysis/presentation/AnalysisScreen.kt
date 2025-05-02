@@ -1,5 +1,7 @@
 package org.ailingo.app.features.analysis.presentation
 
+import ailingo.composeapp.generated.resources.Res
+import ailingo.composeapp.generated.resources.loadingstate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +31,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
@@ -37,6 +38,7 @@ import org.ailingo.app.features.analysis.data.model.AnalysisInfo
 import org.ailingo.app.features.analysis.data.model.IssuesMessage
 import org.ailingo.app.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.math.max
 
 @Composable
 fun AnalysisScreen(
@@ -68,7 +70,7 @@ fun AnalysisScreen(
             }
 
             is UiState.Loading -> {
-                LoadingScreen()
+                LoadingScreen(modifier = Modifier.fillMaxSize(), image = Res.drawable.loadingstate, loadingText = "It takes some time...")
             }
 
             is UiState.Success -> {
@@ -125,39 +127,48 @@ fun AnalysisResultCard(analysisInfo: AnalysisInfo) {
 
             Text(
                 text = buildAnnotatedString {
+                    val originalText = analysisInfo.originalText
+                    val issues = analysisInfo.issues ?: emptyList()
+
+                    val highlightRanges = issues.flatMap { issue ->
+                        val ranges = mutableListOf<IntRange>()
+                        if (issue.text.isNotEmpty()) {
+                            var startIndex = originalText.indexOf(issue.text, 0)
+                            while (startIndex != -1) {
+                                ranges.add(startIndex until startIndex + issue.text.length)
+                                startIndex = originalText.indexOf(issue.text, startIndex + 1)
+                            }
+                        }
+                        ranges
+                    }.sortedBy { it.first }
+
                     var currentOffset = 0
-                    val originalTextLength = analysisInfo.originalText.length
-                    val issues = analysisInfo.issues?.sortedBy { it.startOffset } ?: emptyList()
 
-                    for (issue in issues) {
-                        if (issue.startOffset < 0 || issue.endOffset > originalTextLength || issue.startOffset > issue.endOffset) {
-                            Logger.e("Invalid issue offsets: $issue in text: ${analysisInfo.originalText}")
-                            continue
+                    for (range in highlightRanges) {
+                        val start = range.first
+                        val end = range.last + 1
+
+                        if (start > currentOffset) {
+                            append(originalText.substring(currentOffset, start))
                         }
 
-                        if (issue.startOffset > currentOffset) {
-                            append(analysisInfo.originalText.substring(currentOffset, issue.startOffset))
+                        val effectiveStart = max(currentOffset, start)
+                        if (effectiveStart < end) {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(originalText.substring(effectiveStart, end))
+                            }
                         }
 
-                        withStyle(
-                            style = SpanStyle(
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(analysisInfo.originalText.substring(issue.startOffset, issue.endOffset))
-                        }
-
-                        currentOffset = issue.endOffset
-
-                        if (currentOffset > originalTextLength){
-                            currentOffset = originalTextLength
-                            break
-                        }
+                        currentOffset = max(currentOffset, end)
                     }
 
-                    if (currentOffset < originalTextLength) {
-                        append(analysisInfo.originalText.substring(currentOffset, originalTextLength))
+                    if (currentOffset < originalText.length) {
+                        append(originalText.substring(currentOffset))
                     }
                 },
                 style = MaterialTheme.typography.bodyLarge,
@@ -199,7 +210,7 @@ fun AnalysisResultCard(analysisInfo: AnalysisInfo) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp) // Space between issues
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     issues.forEach { issue ->
                         IssueDetails(issue = issue)
@@ -222,7 +233,7 @@ fun IssueDetails(issue: IssuesMessage) {
         Text(
             text = "Error: \"${issue.text}\"",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error // Highlight the error word
+            color = MaterialTheme.colorScheme.error
         )
         if (issue.description != null) {
             Text(
@@ -235,14 +246,11 @@ fun IssueDetails(issue: IssuesMessage) {
             Text(
                 text = "Suggestion: ${issue.suggestion}",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary // Suggestion in a positive color
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
 }
-
-
-// --- Previews ---
 
 @Preview
 @Composable
@@ -257,9 +265,7 @@ fun AnalysisScreenSuccessPreview() {
                     type = "Verb Form",
                     text = "go",
                     description = "Incorrect verb tense. Should be 'went'.",
-                    suggestion = "went",
-                    startOffset = 3,
-                    endOffset = 5
+                    suggestion = "went"
                 )
             )
         ),
@@ -272,15 +278,23 @@ fun AnalysisScreenSuccessPreview() {
                     type = "Subject-Verb Agreement",
                     text = "has",
                     description = "Incorrect verb agreement. Should be 'have'.",
-                    suggestion = "have",
-                    startOffset = 2,
-                    endOffset = 5
+                    suggestion = "have"
                 )
+            )
+        ),
+        AnalysisInfo(
+            messageId = "789",
+            originalText = "i have two apple and go to store",
+            analysisType = "Basic Grammar",
+            issues = listOf(
+                IssuesMessage(type = "Capitalization", text = "i", description = "Pronoun 'I' needs capitalization.", suggestion = "I"),
+                IssuesMessage(type = "Plural", text = "apple", description = "Countable noun 'apple' should be plural.", suggestion = "apples"),
+                IssuesMessage(type = "Verb Form", text = "go", description = "Use correct tense for 'go'.", suggestion = "went or going?")
             )
         )
     )
 
-    AppTheme { // Wrap preview in your theme
+    AppTheme {
         Surface {
             AnalysisScreen(
                 conversationId = "mockConversationId",
@@ -307,7 +321,7 @@ fun AnalysisScreenSuccessNoIssuesPreview() {
             analysisType = "Basic Grammar",
             issues = emptyList()
         ),
-        AnalysisInfo( // Add one with issues for variety
+        AnalysisInfo(
             messageId = "111",
             originalText = "They is here.",
             analysisType = "Basic Grammar",
@@ -316,15 +330,13 @@ fun AnalysisScreenSuccessNoIssuesPreview() {
                     type = "Subject-Verb Agreement",
                     text = "is",
                     description = "Incorrect verb agreement. Should be 'are'.",
-                    suggestion = "are",
-                    startOffset = 5,
-                    endOffset = 7
+                    suggestion = "are"
                 )
             )
         )
     )
 
-    AppTheme { // Wrap preview in your theme
+    AppTheme {
         Surface {
             AnalysisScreen(
                 conversationId = "mockConversationId",
@@ -342,7 +354,7 @@ fun AnalysisScreenSuccessEmptyListPreview() {
         Surface {
             AnalysisScreen(
                 conversationId = "mockConversationId",
-                basicGrammarState = UiState.Success(emptyList()), // Empty list
+                basicGrammarState = UiState.Success(emptyList()),
                 onEvent = {}
             )
         }
