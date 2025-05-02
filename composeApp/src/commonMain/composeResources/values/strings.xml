@@ -150,7 +150,11 @@
     <string name="suggestions_to_improve">Suggestions to improve the following message:</string>
     <string name="checking">Checking what can be improve...</string>
     <string name="error_checking_improvements">Error checking for improvements: {0}</string>
-    <string name="no_suggestions_available">No suggestions available.</string>
+    <string name="no_suggestions_available">Well done! There are no suggestions for improvement.</string>
     <string name="close">Close</string>
     <string name="what_can_be_improved">What can be improved?</string>
+
+    <string name="conversation_finished">Conversation finished</string>
+    <string name="analyze_conversation">Analyze Conversation</string>
+    <string name="improved_message">Improved Message</string>
 </resources>

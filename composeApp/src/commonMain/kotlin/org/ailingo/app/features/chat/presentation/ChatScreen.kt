@@ -2,13 +2,16 @@ package org.ailingo.app.features.chat.presentation
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.ailingo_maskot
+import ailingo.composeapp.generated.resources.analyze_conversation
 import ailingo.composeapp.generated.resources.checking
 import ailingo.composeapp.generated.resources.close
 import ailingo.composeapp.generated.resources.close_translation
+import ailingo.composeapp.generated.resources.conversation_finished
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
 import ailingo.composeapp.generated.resources.default_user_avatar
 import ailingo.composeapp.generated.resources.english
 import ailingo.composeapp.generated.resources.error_checking_improvements
+import ailingo.composeapp.generated.resources.improved_message
 import ailingo.composeapp.generated.resources.maskot
 import ailingo.composeapp.generated.resources.message
 import ailingo.composeapp.generated.resources.no_suggestions_available
@@ -37,9 +40,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,9 +62,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +78,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -90,9 +99,10 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.core.presentation.custom.CustomButton
@@ -124,7 +134,7 @@ fun ChatScreen(
     val voiceToTextHandler = rememberVoiceToTextHandler()
     val voiceState by voiceToTextHandler.state.collectAsState()
     val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val translateSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedText by remember { mutableStateOf("") }
 
     val isConversationFinished by remember(messagesState) {
@@ -152,25 +162,251 @@ fun ChatScreen(
             }
         } else if (voiceState is VoiceToTextState.Error) {
             val errorMessage = (voiceState as VoiceToTextState.Error).message
-            Logger.i("Voice Recognition Error: $errorMessage")
+            // Logger.i("Voice Recognition Error: $errorMessage") // Commenting out log as requested
             SnackbarController.sendEvent(SnackbarEvent(message = errorMessage))
         }
     }
 
     LaunchedEffect(messagesState) {
         if (messagesState.isNotEmpty()) {
-            if (!isConversationFinished) {
+            // Auto-scroll only if the last message is from the bot or if it's the user's message and it's the very last message in the list
+            val lastMessage = messagesState.lastOrNull()
+            if (lastMessage != null && (!isUserMessage(lastMessage) || messagesState.size == listState.firstVisibleItemIndex + listState.layoutInfo.visibleItemsInfo.size)) {
                 listState.scrollToItem(messagesState.size - 1)
             }
         }
     }
 
-    AnimatedVisibility(sheetState.isVisible) {
+
+    TranslateMessageBottomSheet(
+        translateSheetState = translateSheetState,
+        scope = scope,
+        selectedText = selectedText,
+        translateState = translateState
+    )
+
+    SingleMessageCheckBottomSheet(
+        showSingleMessageImprovements = showSingleMessageImprovements,
+        onShowSingleMessageImprovementsChange = { showSingleMessageImprovements = it },
+        messageToImprove = messageToImprove,
+        singleMessageCheckState = singleMessageCheckState
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            ),
+            shape = CircleShape
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Card(
+                    shape = CircleShape,
+                    modifier = Modifier.size(50.dp)
+                ) {
+                    AsyncImage(
+                        model = topicImage,
+                        contentDescription = topicName, // Topic name can be content description
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Text(
+                    topicName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                state = listState
+            ) {
+                items(messagesState) { message ->
+                    ChatMessageItem(
+                        message = message,
+                        userAvatar = userAvatar,
+                        onSuggestionClicked = { suggestion ->
+                            onEvent(ChatEvents.OnSendMessage(suggestion))
+                        },
+                        chatUiState = chatUiState, // Pass chatUiState to ChatMessageItem
+                        onTranslate = { text ->
+                            selectedText = text
+                            onEvent(ChatEvents.OnTranslateText(text))
+                            scope.launch {
+                                translateSheetState.show()
+                            }
+                        },
+                        isConversationFinished = isConversationFinished,
+                        onImproveMessage = { messageContent ->
+                            messageToImprove = messageContent
+                            onEvent(ChatEvents.OnCheckSingleMessage(messageContent))
+                            showSingleMessageImprovements = true
+                        }
+                    )
+                }
+                // Show loading/error state messages only if conversation is not finished
+                if (!isConversationFinished) {
+                    when (chatUiState) {
+                        is UiState.Error -> {
+                            item {
+                                ChatMessageItem(
+                                    message = Conversation(
+                                        id = "error_msg_${chatUiState.message.hashCode()}", // Provide a unique key
+                                        conversationId = "",
+                                        content = chatUiState.message,
+                                        timestamp = "",
+                                        type = MessageType.BOT.name, // Display as bot message
+                                        suggestions = null // No suggestions for error message
+                                    ),
+                                    onSuggestionClicked = {},
+                                    chatUiState = chatUiState, // Pass the specific error state
+                                    onTranslate = {}, // Translate not applicable for error message
+                                    isConversationFinished = isConversationFinished,
+                                    onImproveMessage = {} // Improve not applicable for error message
+                                )
+                            }
+                        }
+
+                        is UiState.Idle -> {} // Do nothing
+                        is UiState.Loading -> {
+                            item {
+                                ChatMessageItem(
+                                    message = Conversation(
+                                        id = "loading_msg", // Provide a unique key
+                                        conversationId = "",
+                                        content = stringResource(Res.string.waiting_for_response),
+                                        timestamp = "",
+                                        type = MessageType.BOT.name, // Display as bot message
+                                        suggestions = null // No suggestions for loading message
+                                    ),
+                                    onSuggestionClicked = {},
+                                    chatUiState = chatUiState, // Pass the specific loading state
+                                    onTranslate = {}, // Translate not applicable for loading message
+                                    isConversationFinished = isConversationFinished,
+                                    onImproveMessage = {} // Improve not applicable for loading message
+                                )
+                            }
+                        }
+
+                        is UiState.Success -> {} // Messages are already in messagesState list
+                    }
+                }
+            }
+
+            AnimatedVisibility(!isConversationFinished) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = messageInput,
+                        onValueChange = { messageInput = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .onKeyEvent { event ->
+                                if (event.key == Key.Enter && chatUiState !is UiState.Loading) {
+                                    sendMessage()
+                                    return@onKeyEvent true
+                                }
+                                false
+                            },
+                        placeholder = { Text(stringResource(Res.string.message)) },
+                        shape = RoundedCornerShape(32.dp),
+                        maxLines = 3,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        trailingIcon = {
+                            if (getPlatformName() != PlatformName.Desktop) {
+                                IconButton(onClick = {
+                                    if (voiceToTextHandler.isAvailable) {
+                                        scope.launch {
+                                            if (voiceState is VoiceToTextState.Listening) {
+                                                voiceToTextHandler.stopListening()
+                                            } else {
+                                                messageInput = ""
+                                                voiceToTextHandler.startListening()
+                                            }
+                                        }
+                                    } else {
+                                        scope.launch {
+                                            SnackbarController.sendEvent(SnackbarEvent(message = "Voice recognition not available"))
+                                        }
+                                    }
+                                }) {
+                                    // Provide content descriptions for accessibility
+                                    val micIcon = if (voiceState is VoiceToTextState.Listening) Icons.Filled.Mic else Icons.Filled.MicOff
+                                    val micDescription = if (voiceState is VoiceToTextState.Listening) "Stop Listening" else "Start Listening" // Use more descriptive CD
+                                    Icon(imageVector = micIcon, contentDescription = micDescription)
+                                }
+                            }
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            sendMessage()
+                        },
+                        enabled = chatUiState !is UiState.Loading && messageInput.isNotBlank(), // Enable only when not loading and input is not blank
+                        modifier = Modifier.height(OutlinedTextFieldDefaults.MinHeight),
+                        shape = RoundedCornerShape(32.dp)
+                    ) {
+                        Text(stringResource(Res.string.send_message))
+                    }
+                }
+            }
+            AnimatedVisibility(visible = isConversationFinished) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Card(
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                    ) {
+                        Text(stringResource(Res.string.conversation_finished), textAlign = TextAlign.Center, modifier = Modifier.fillMaxHeight().align(Alignment.CenterHorizontally))
+                    }
+                    Button(
+                        onClick = {
+                            // TODO: Implement analysis action
+                        }, shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                    ) {
+                        Text(stringResource(Res.string.analyze_conversation))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TranslateMessageBottomSheet(
+    translateSheetState: SheetState,
+    scope: CoroutineScope,
+    selectedText: String,
+    translateState: UiState<String>
+) {
+    AnimatedVisibility(translateSheetState.isVisible) {
         ModalBottomSheet(
-            sheetState = sheetState,
+            sheetState = translateSheetState,
             onDismissRequest = {
                 scope.launch {
-                    sheetState.hide()
+                    translateSheetState.hide()
                 }
             }
         ) {
@@ -193,7 +429,7 @@ fun ChatScreen(
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
+                        contentDescription = null, // Decorative icon
                         modifier = Modifier.size(14.dp)
                     )
                     Surface(
@@ -238,7 +474,7 @@ fun ChatScreen(
                 CustomButton(
                     onClick = {
                         scope.launch {
-                            sheetState.hide()
+                            translateSheetState.hide()
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -249,17 +485,27 @@ fun ChatScreen(
             }
         }
     }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SingleMessageCheckBottomSheet(
+    showSingleMessageImprovements: Boolean,
+    onShowSingleMessageImprovementsChange: (Boolean) -> Unit,
+    messageToImprove: String,
+    singleMessageCheckState: UiState<String>,
+) {
     AnimatedVisibility(showSingleMessageImprovements) {
         ModalBottomSheet(
-            onDismissRequest = { showSingleMessageImprovements = false },
+            onDismissRequest = {
+                onShowSingleMessageImprovementsChange(false)
+            },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     stringResource(Res.string.suggestions_to_improve),
@@ -271,6 +517,14 @@ fun ChatScreen(
                     messageToImprove,
                     style = MaterialTheme.typography.bodyLarge
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (singleMessageCheckState is UiState.Success) {
+                    if (singleMessageCheckState.data != "No mistakes" && singleMessageCheckState.data != "No mistakes.") {
+                        Text(stringResource(Res.string.improved_message), fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 AnimatedContent(
@@ -287,196 +541,53 @@ fun ChatScreen(
                     },
                     label = "improvementAnimation"
                 ) { targetState ->
-                    Text(
-                        when (targetState) {
-                            is UiState.Success -> targetState.data
-                            is UiState.Loading -> stringResource(Res.string.checking)
-                            is UiState.Error -> stringResource(Res.string.error_checking_improvements, targetState.message)
-                            else -> stringResource(Res.string.no_suggestions_available)
-                        },
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    when (targetState) {
+                        is UiState.Success -> {
+                            if (targetState.data == "No mistakes" || targetState.data == "No mistakes.") {
+                                Text(
+                                    stringResource(Res.string.no_suggestions_available),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            } else {
+                                Text(
+                                    targetState.data,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+
+                        is UiState.Loading -> {
+                            Text(
+                                stringResource(Res.string.checking),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+
+                        is UiState.Error -> {
+                            Text(
+                                stringResource(Res.string.error_checking_improvements, targetState.message),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+
+                        else -> {
+                            Text(
+                                stringResource(Res.string.no_suggestions_available),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 CustomButton(
-                    onClick = { showSingleMessageImprovements = false },
+                    onClick = {
+                        onShowSingleMessageImprovementsChange(false)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(stringResource(Res.string.close))
-                }
-            }
-        }
-    }
-
-    Column(modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) {
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            ),
-            shape = CircleShape
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Card(
-                    shape = CircleShape,
-                    modifier = Modifier.size(50.dp)
-                ) {
-                    AsyncImage(
-                        model = topicImage,
-                        contentDescription = topicName,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                Text(
-                    topicName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Column(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                state = listState
-            ) {
-                items(messagesState) { message ->
-                    ChatMessageItem(
-                        message = message,
-                        userAvatar = userAvatar,
-                        onSuggestionClicked = { suggestion ->
-                            onEvent(ChatEvents.OnSendMessage(suggestion))
-                        },
-                        chatUiState = chatUiState,
-                        onTranslate = { text ->
-                            selectedText = text
-                            onEvent(ChatEvents.OnTranslateText(text))
-                            scope.launch {
-                                sheetState.show()
-                            }
-                        },
-                        isConversationFinished = isConversationFinished,
-                        onImproveMessage = { messageContent ->
-                            messageToImprove = messageContent
-                            onEvent(ChatEvents.OnCheckSingleMessage(messageContent))
-                            showSingleMessageImprovements = true
-                        }
-                    )
-                }
-                if (!isConversationFinished) {
-                    when (chatUiState) {
-                        is UiState.Error -> {
-                            item {
-                                ChatMessageItem(
-                                    message = Conversation(
-                                        id = "",
-                                        conversationId = "",
-                                        content = chatUiState.message,
-                                        timestamp = "",
-                                        type = MessageType.BOT.name
-                                    ),
-                                    onSuggestionClicked = {},
-                                    chatUiState = chatUiState,
-                                    onTranslate = {},
-                                    isConversationFinished = isConversationFinished,
-                                    onImproveMessage = {}
-                                )
-                            }
-                        }
-
-                        is UiState.Idle -> {}
-                        is UiState.Loading -> {
-                            item {
-                                ChatMessageItem(
-                                    message = Conversation(
-                                        id = "",
-                                        conversationId = "",
-                                        content = stringResource(Res.string.waiting_for_response),
-                                        timestamp = "",
-                                        type = MessageType.BOT.name
-                                    ),
-                                    onSuggestionClicked = {},
-                                    chatUiState = chatUiState,
-                                    onTranslate = {},
-                                    isConversationFinished = isConversationFinished,
-                                    onImproveMessage = {}
-                                )
-                            }
-                        }
-
-                        is UiState.Success -> {}
-                    }
-                }
-            }
-
-            AnimatedVisibility(!isConversationFinished) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = messageInput,
-                        onValueChange = { messageInput = it },
-                        modifier = Modifier
-                            .weight(1f)
-                            .onKeyEvent { event ->
-                                if (event.key == Key.Enter && chatUiState !is UiState.Loading) {
-                                    sendMessage()
-                                    return@onKeyEvent true
-                                }
-                                false
-                            },
-                        placeholder = { Text(stringResource(Res.string.message)) },
-                        shape = RoundedCornerShape(32.dp),
-                        maxLines = 3,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                        trailingIcon = {
-                            //TODO ON DESKTOP
-                            if (getPlatformName() != PlatformName.Desktop) {
-                                IconButton(onClick = {
-                                    if (voiceToTextHandler.isAvailable) {
-                                        scope.launch {
-                                            if (voiceState is VoiceToTextState.Listening) {
-                                                voiceToTextHandler.stopListening()
-                                            } else {
-                                                messageInput = ""
-                                                voiceToTextHandler.startListening()
-                                            }
-                                        }
-                                    }
-                                }) {
-                                    if (voiceState is VoiceToTextState.Listening) {
-                                        Icon(imageVector = Icons.Filled.Mic, contentDescription = "mic")
-                                    } else {
-                                        Icon(imageVector = Icons.Filled.MicOff, contentDescription = "mic")
-                                    }
-                                }
-                            }
-                        }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedButton(
-                        onClick = {
-                            sendMessage()
-                        },
-                        enabled = chatUiState !is UiState.Loading,
-                        modifier = Modifier.height(OutlinedTextFieldDefaults.MinHeight),
-                        shape = RoundedCornerShape(32.dp)
-                    ) {
-                        Text(stringResource(Res.string.send_message))
-                    }
                 }
             }
         }
@@ -488,12 +599,12 @@ fun ChatMessageItem(
     message: Conversation,
     userAvatar: String? = null,
     onSuggestionClicked: (String) -> Unit,
-    chatUiState: UiState<MutableList<Conversation>>,
+    chatUiState: UiState<MutableList<Conversation>>, // Accept UiState here
     onTranslate: (String) -> Unit,
     isConversationFinished: Boolean = false,
     onImproveMessage: (String) -> Unit
 ) {
-    val isUserMessage = message.type == MessageType.USER.name
+    val isUserMessage = isUserMessage(message)
     val backgroundColor = if (isUserMessage) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
@@ -523,15 +634,22 @@ fun ChatMessageItem(
                 )
             )
         ) {
-            Column {
+            Column(
+                modifier = Modifier.width(IntrinsicSize.Max)
+            ) {
                 if (isUserMessage) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                        modifier = Modifier.padding(start = 4.dp).clickable {
-                            onImproveMessage(message.content)
-                        }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp)
+                            .clickable {
+                                onImproveMessage(message.content)
+                            }
                     ) {
+                        // Use descriptive content description or null if purely decorative
+                        Icon(imageVector = Icons.Filled.CheckCircle, contentDescription = stringResource(Res.string.what_can_be_improved))
                         Text(stringResource(Res.string.what_can_be_improved))
 
                         Card(
@@ -554,7 +672,7 @@ fun ChatMessageItem(
                             }
                         }
                     }
-                } else {
+                } else { // BOT message
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
@@ -566,13 +684,14 @@ fun ChatMessageItem(
                                 contentDescription = stringResource(Res.string.ailingo_maskot)
                             )
                         }
-                        AnimatedVisibility(visible = chatUiState is UiState.Success || chatUiState is UiState.Idle) {
+                        // Only show translate option if not in loading or error state
+                        AnimatedVisibility(visible = chatUiState !is UiState.Loading && chatUiState !is UiState.Error) {
                             Row(
                                 modifier = Modifier.clickable {
                                     onTranslate(message.content)
                                 }
                             ) {
-                                Icon(Icons.Default.Translate, contentDescription = null)
+                                Icon(Icons.Default.Translate, contentDescription = stringResource(Res.string.translate))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(stringResource(Res.string.translate))
                             }
@@ -588,7 +707,8 @@ fun ChatMessageItem(
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        if (!isUserMessage && !message.suggestions.isNullOrEmpty() && !isConversationFinished) {
+        // Show suggestions only for BOT messages that are not loading/error and conversation is not finished
+        if (!isUserMessage && !message.suggestions.isNullOrEmpty() && !isConversationFinished && chatUiState !is UiState.Loading && chatUiState !is UiState.Error) {
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -606,9 +726,9 @@ fun ChatMessageItem(
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .clickable {
-                                if (chatUiState is UiState.Success) {
-                                    val extractedText = suggestion.substringAfter(". \"").dropLast(1)
-                                    onSuggestionClicked(extractedText)
+                                // Only allow clicking suggestions if not in a loading state
+                                if (chatUiState !is UiState.Loading) {
+                                    onSuggestionClicked(suggestion)
                                 }
                             },
                     ) {
@@ -624,6 +744,8 @@ fun ChatMessageItem(
                             )
                             OutlinedCard(
                                 modifier = Modifier.clickable {
+                                    // Allow translating suggestions even if main chat is loading/error,
+                                    // but the translate action itself will handle its state.
                                     onTranslate(suggestion)
                                 }
                             ) {
@@ -641,17 +763,25 @@ fun ChatMessageItem(
             }
         }
         val displayTimestamp = formatTimestamp(message.timestamp)
-        Text(
-            text = displayTimestamp,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            modifier = Modifier.padding(
-                start = timestampStartPadding,
-                end = timestampEndPadding,
-                bottom = 8.dp
+        // Only show timestamp for actual messages, not loading/error placeholders
+        if (message.id.isNotBlank()) {
+            Text(
+                text = displayTimestamp,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(
+                    start = timestampStartPadding,
+                    end = timestampEndPadding,
+                    bottom = 8.dp
+                )
             )
-        )
+        }
     }
+}
+
+// Helper function to determine if a message is from the user
+fun isUserMessage(message: Conversation): Boolean {
+    return message.type == MessageType.USER.name
 }
 
 fun formatTimestamp(timestampString: String): String {
@@ -660,6 +790,6 @@ fun formatTimestamp(timestampString: String): String {
         val timePart = timestampString.substringAfter('T').substring(0, 5)
         "$datePart $timePart".trim()
     } else {
-        ""
+        "" // Return empty string or a default value if timestamp format is unexpected
     }
 }
