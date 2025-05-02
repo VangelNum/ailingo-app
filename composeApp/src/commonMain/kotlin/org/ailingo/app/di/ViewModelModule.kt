@@ -1,5 +1,6 @@
 package org.ailingo.app.di
 
+import org.ailingo.app.features.analysis.presentation.AnalysisViewModel
 import org.ailingo.app.features.chat.presentation.ChatViewModel
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryViewModel
@@ -32,4 +33,5 @@ val viewModelModule = module {
     viewModel { UpdateAvatarViewModel(get(), get()) }
     viewModel { LeaderboardViewModel(get()) }
     viewModel { ChatHistoryViewModel(get()) }
+    viewModel { AnalysisViewModel(get()) }
 }

@@ -1,5 +1,7 @@
 package org.ailingo.app.di
 
+import org.ailingo.app.features.analysis.data.repository.AnalysisRepositoryImpl
+import org.ailingo.app.features.analysis.domain.repository.AnalysisRepository
 import org.ailingo.app.features.basicauth.data.repository.AuthRepositoryImpl
 import org.ailingo.app.features.basicauth.domain.repository.AuthRepository
 import org.ailingo.app.features.chat.data.repository.ChatRepositoryImpl
@@ -82,5 +84,8 @@ val repositoryModule = module {
     }
     single<TranslateRepository> {
         TranslateRepositoryImpl(get(), get())
+    }
+    single<AnalysisRepository> {
+        AnalysisRepositoryImpl(get(), get())
     }
 }

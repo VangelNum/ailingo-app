@@ -31,7 +31,7 @@ class ChatViewModel(
     private val _translateState = MutableStateFlow<UiState<String>>(UiState.Idle())
     val translateState = _translateState.asStateFlow()
 
-    private var conversationId by mutableStateOf("")
+    var conversationId by mutableStateOf("")
 
     private val _messages = MutableStateFlow<List<Conversation>>(mutableListOf())
     val messages = _messages.asStateFlow()

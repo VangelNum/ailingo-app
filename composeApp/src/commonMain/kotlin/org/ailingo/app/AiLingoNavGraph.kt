@@ -47,6 +47,8 @@ import org.ailingo.app.core.presentation.topappbar.TopAppBarCenter
 import org.ailingo.app.core.presentation.topappbar.TopAppBarWithProfile
 import org.ailingo.app.features.achievements.presentation.AchievementsScreen
 import org.ailingo.app.features.additional.presentation.AdditionalScreen
+import org.ailingo.app.features.analysis.presentation.AnalysisScreen
+import org.ailingo.app.features.analysis.presentation.AnalysisViewModel
 import org.ailingo.app.features.buns.presentation.BunsScreen
 import org.ailingo.app.features.chat.presentation.ChatScreen
 import org.ailingo.app.features.chat.presentation.ChatViewModel
@@ -133,6 +135,7 @@ fun AiLingoNavGraph(
         ChatHistoryPage::class,
         AdditionalPage::class,
         AchievementsPage::class,
+        AnalysisPage::class,
     )
 
     val isNavigationDrawerVisible = currentDestination?.let { dest ->
@@ -271,7 +274,10 @@ fun AiLingoNavGraph(
                             onEvent = { event ->
                                 chatViewModel.onEvent(event)
                             },
-                            userAvatar = if (loginState is UiState.Success) loginState.data.avatar else null
+                            userAvatar = if (loginState is UiState.Success) loginState.data.avatar else null,
+                            onNavigateToAnalyzeConversation = {
+                                navController.navigate(AnalysisPage(chatViewModel.conversationId))
+                            }
                         )
                     }
                     composable<ProfilePage> {
@@ -479,6 +485,18 @@ fun AiLingoNavGraph(
                     }
                     composable<AchievementsPage> {
                         AchievementsScreen()
+                    }
+                    composable<AnalysisPage> { backStack ->
+                        val args = backStack.toRoute<AnalysisPage>()
+                        val analysisViewModel = koinViewModel<AnalysisViewModel>()
+                        val basicGrammarState = analysisViewModel.basicGrammarState.collectAsStateWithLifecycle().value
+                        AnalysisScreen(
+                            conversationId = args.conversationId,
+                            basicGrammarState = basicGrammarState,
+                            onEvent = { event ->
+                                analysisViewModel.onEvent(event)
+                            }
+                        )
                     }
                 }
             }

@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -99,7 +98,6 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
@@ -127,7 +125,8 @@ fun ChatScreen(
     translateState: UiState<String>,
     singleMessageCheckState: UiState<String>,
     onEvent: (ChatEvents) -> Unit,
-    userAvatar: String? = null
+    userAvatar: String? = null,
+    onNavigateToAnalyzeConversation: () -> Unit
 ) {
     var messageInput by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -371,15 +370,19 @@ fun ChatScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Card(
+                    Button(
+                        onClick = {},
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight),
+                        enabled = false
                     ) {
-                        Text(stringResource(Res.string.conversation_finished), textAlign = TextAlign.Center, modifier = Modifier.fillMaxHeight().align(Alignment.CenterHorizontally))
+                        Text(stringResource(Res.string.conversation_finished))
                     }
                     Button(
                         onClick = {
-                            // TODO: Implement analysis action
+                            onNavigateToAnalyzeConversation()
                         }, shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .weight(1f)
@@ -599,7 +602,7 @@ fun ChatMessageItem(
     message: Conversation,
     userAvatar: String? = null,
     onSuggestionClicked: (String) -> Unit,
-    chatUiState: UiState<MutableList<Conversation>>, // Accept UiState here
+    chatUiState: UiState<MutableList<Conversation>>,
     onTranslate: (String) -> Unit,
     isConversationFinished: Boolean = false,
     onImproveMessage: (String) -> Unit
@@ -684,7 +687,6 @@ fun ChatMessageItem(
                                 contentDescription = stringResource(Res.string.ailingo_maskot)
                             )
                         }
-                        // Only show translate option if not in loading or error state
                         AnimatedVisibility(visible = chatUiState !is UiState.Loading && chatUiState !is UiState.Error) {
                             Row(
                                 modifier = Modifier.clickable {
@@ -707,7 +709,6 @@ fun ChatMessageItem(
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        // Show suggestions only for BOT messages that are not loading/error and conversation is not finished
         if (!isUserMessage && !message.suggestions.isNullOrEmpty() && !isConversationFinished && chatUiState !is UiState.Loading && chatUiState !is UiState.Error) {
             FlowRow(
                 modifier = Modifier
@@ -726,7 +727,6 @@ fun ChatMessageItem(
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .clickable {
-                                // Only allow clicking suggestions if not in a loading state
                                 if (chatUiState !is UiState.Loading) {
                                     onSuggestionClicked(suggestion)
                                 }
@@ -744,8 +744,6 @@ fun ChatMessageItem(
                             )
                             OutlinedCard(
                                 modifier = Modifier.clickable {
-                                    // Allow translating suggestions even if main chat is loading/error,
-                                    // but the translate action itself will handle its state.
                                     onTranslate(suggestion)
                                 }
                             ) {

@@ -102,3 +102,8 @@ object ChatHistoryPage
 
 @Serializable
 object AchievementsPage
+
+@Serializable
+data class AnalysisPage(
+    val conversationId: String
+)
