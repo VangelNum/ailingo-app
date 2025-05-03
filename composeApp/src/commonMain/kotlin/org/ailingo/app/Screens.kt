@@ -104,6 +104,9 @@ object ChatHistoryPage
 object AchievementsPage
 
 @Serializable
+object LecturePage
+
+@Serializable
 data class AnalysisPage(
     val conversationId: String
 )

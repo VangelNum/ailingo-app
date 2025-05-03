@@ -34,4 +34,55 @@ class AnalysisRepositoryImpl(
             emit(UiState.Error(errorMapper.mapError(e)))
         }
     }
+
+    override fun analysisVocabularyPhrasing(conversationId: String): Flow<UiState<List<AnalysisInfo>>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response =
+                httpClient.post("$BASE_URL/api/v1/conversations/$conversationId/analyze/vocabulary-phrasing") {
+                    contentType(ContentType.Application.Json)
+                }
+            if (response.status.isSuccess()) {
+                emit(UiState.Success(response.body()))
+            } else {
+                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorMapper.mapError(e)))
+        }
+    }
+
+    override fun analysisClarityStyle(conversationId: String): Flow<UiState<List<AnalysisInfo>>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response =
+                httpClient.post("$BASE_URL/api/v1/conversations/$conversationId/analyze/clarity-style") {
+                    contentType(ContentType.Application.Json)
+                }
+            if (response.status.isSuccess()) {
+                emit(UiState.Success(response.body()))
+            } else {
+                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorMapper.mapError(e)))
+        }
+    }
+
+    override fun analysisBeginnerErrors(conversationId: String): Flow<UiState<List<AnalysisInfo>>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response =
+                httpClient.post("$BASE_URL/api/v1/conversations/$conversationId/analyze/beginner-errors") {
+                    contentType(ContentType.Application.Json)
+                }
+            if (response.status.isSuccess()) {
+                emit(UiState.Success(response.body()))
+            } else {
+                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorMapper.mapError(e)))
+        }
+    }
 }

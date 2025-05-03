@@ -489,13 +489,13 @@ fun AiLingoNavGraph(
                     composable<AnalysisPage> { backStack ->
                         val args = backStack.toRoute<AnalysisPage>()
                         val analysisViewModel = koinViewModel<AnalysisViewModel>()
-                        val basicGrammarState = analysisViewModel.basicGrammarState.collectAsStateWithLifecycle().value
+                        val analysisState = analysisViewModel.analysisState.collectAsStateWithLifecycle().value
                         AnalysisScreen(
                             conversationId = args.conversationId,
-                            basicGrammarState = basicGrammarState,
                             onEvent = { event ->
                                 analysisViewModel.onEvent(event)
-                            }
+                            },
+                            analysisState = analysisState
                         )
                     }
                 }

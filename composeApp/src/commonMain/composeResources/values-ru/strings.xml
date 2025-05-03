@@ -154,4 +154,19 @@
     <string name="conversation_finished">Диалог завершен</string>
     <string name="analyze_conversation">Провести анализ</string>
     <string name="improved_message">Улучшенное сообщение</string>
+
+    <string name="loading_analysis_text">Анализ занимает некоторое время...</string>
+    <string name="basic_grammar_analysis_title">Базовый грамматический анализ</string>
+    <string name="vocabulary_phrasing_analysis_title">Анализ лексики и фраз</string>
+    <string name="clarity_style_analysis_title">Анализ ясности и стиля</string>
+    <string name="beginner_errors_analysis_title">Анализ ошибок новичков</string>
+    <string name="no_analysis_results">Результаты анализа отсутствуют.</string>
+    <string name="original_text_label">Исходный текст:</string>
+    <string name="issues_found_label">Найдены проблемы:</string>
+    <string name="no_issues_found">Проблем не найдено</string>
+    <string name="all_good_message">Всё отлично!</string>
+    <string name="type_label">Тип:</string>
+    <string name="error_label">Ошибка:</string>
+    <string name="description_label">Описание:</string>
+    <string name="suggestion_label">Следует заменить на:</string>
 </resources>

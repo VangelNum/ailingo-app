@@ -157,4 +157,19 @@
     <string name="conversation_finished">Conversation finished</string>
     <string name="analyze_conversation">Analyze Conversation</string>
     <string name="improved_message">Improved Message</string>
+
+    <string name="loading_analysis_text">It takes some time to analyze...</string>
+    <string name="basic_grammar_analysis_title">Basic Grammar Analysis</string>
+    <string name="vocabulary_phrasing_analysis_title">Vocabulary and Phrasing Analysis</string>
+    <string name="clarity_style_analysis_title">Clarity and Style Analysis</string>
+    <string name="beginner_errors_analysis_title">Beginner Errors Analysis</string>
+    <string name="no_analysis_results">No analysis results available.</string>
+    <string name="original_text_label">Original Text:</string>
+    <string name="issues_found_label">Issues found:</string>
+    <string name="no_issues_found">No issues</string>
+    <string name="all_good_message">Looks good!</string>
+    <string name="type_label">Type:</string>
+    <string name="error_label">Error:</string>
+    <string name="description_label">Description:</string>
+    <string name="suggestion_label">Should be replaced with::</string>
 </resources>
