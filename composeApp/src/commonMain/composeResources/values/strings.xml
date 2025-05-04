@@ -187,4 +187,8 @@
     <string name="claim_bonus">Claim bonus</string>
     <string name="retry">Retry</string>
 
+    <string name="price">Price</string>
+    <string name="gain">Gain</string>
+    <string name="req">Req.</string>
+
 </resources>

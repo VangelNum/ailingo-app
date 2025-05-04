@@ -5,8 +5,11 @@ import ailingo.composeapp.generated.resources.action_cancel
 import ailingo.composeapp.generated.resources.action_confirm
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
+import ailingo.composeapp.generated.resources.gain
 import ailingo.composeapp.generated.resources.icon_experience
 import ailingo.composeapp.generated.resources.loading_error
+import ailingo.composeapp.generated.resources.price
+import ailingo.composeapp.generated.resources.req
 import ailingo.composeapp.generated.resources.topic_confirmation_message
 import ailingo.composeapp.generated.resources.topic_confirmation_title
 import ailingo.composeapp.generated.resources.topic_required_xp
@@ -269,7 +272,7 @@ fun ContentTopics(
                         // Price (Coins)
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "Price",
+                                stringResource(Res.string.price),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) // Muted color on primary
                             )
@@ -303,7 +306,7 @@ fun ContentTopics(
                         // Gained XP (MODIFIED: Always show 0)
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "Gain",
+                                stringResource(Res.string.gain),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) // Muted color on primary
                             )
@@ -343,7 +346,7 @@ fun ContentTopics(
                         // Required XP
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "Req.", // Short for "Required"
+                                stringResource(Res.string.req), // Short for "Required"
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f) // Muted color
                             )
@@ -369,7 +372,7 @@ fun ContentTopics(
                         // Gained XP
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "Gain", // Short for "Gain"
+                                stringResource(Res.string.gain), // Short for "Gain"
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
                             )
@@ -405,7 +408,7 @@ fun ContentTopics(
                         // Price (Coins)
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "Price",
+                                stringResource(Res.string.price),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                             )
@@ -438,7 +441,7 @@ fun ContentTopics(
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "Gain",
+                                stringResource(Res.string.gain),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                             )

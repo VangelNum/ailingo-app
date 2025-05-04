@@ -183,4 +183,8 @@
     <string name="claimed_for_today">Бонус уже получен. Возаращайтесь позже</string>
     <string name="claim_bonus">Получить бонус</string>
     <string name="retry">Повторить</string>
+
+    <string name="price">Цена</string>
+    <string name="gain">Получите</string>
+    <string name="req">Треб.</string>
 </resources>
