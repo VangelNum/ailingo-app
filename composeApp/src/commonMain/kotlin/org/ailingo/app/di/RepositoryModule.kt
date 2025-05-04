@@ -8,6 +8,8 @@ import org.ailingo.app.features.chat.data.repository.ChatRepositoryImpl
 import org.ailingo.app.features.chat.domain.repository.ChatRepository
 import org.ailingo.app.features.chathistory.data.repository.ChatHistoryRepositoryImpl
 import org.ailingo.app.features.chathistory.domain.repository.ChatHistoryRepository
+import org.ailingo.app.features.dailybonus.data.repository.DailyBonusRepositoryImpl
+import org.ailingo.app.features.dailybonus.domain.repository.DailyBonusRepository
 import org.ailingo.app.features.dictionary.historysearch.data.repository.DictionarySearchHistoryRepositoryImpl
 import org.ailingo.app.features.dictionary.historysearch.domain.repository.DictionarySearchHistoryRepository
 import org.ailingo.app.features.dictionary.main.data.repository.DictionaryRepositoryImpl
@@ -87,5 +89,8 @@ val repositoryModule = module {
     }
     single<AnalysisRepository> {
         AnalysisRepositoryImpl(get(), get())
+    }
+    single<DailyBonusRepository> {
+        DailyBonusRepositoryImpl(get(), get())
     }
 }

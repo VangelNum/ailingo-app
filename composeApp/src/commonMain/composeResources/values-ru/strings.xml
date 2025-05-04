@@ -169,4 +169,18 @@
     <string name="error_label">Ошибка:</string>
     <string name="description_label">Описание:</string>
     <string name="suggestion_label">Следует заменить на:</string>
+
+    <string name="topic_xp_required_title">Топик Недоступен</string>
+    <string name="topic_xp_required_message">Вам нужно %1$d XP, чтобы разблокировать эту тему. У вас сейчас %2$d XP.</string>
+    <string name="topic_required_xp">Требуется %1$d XP</string>
+
+    <string name="daily_bonus">Ежедневный бонус</string>
+
+    <string name="daily_bonus_title">Ежедневный бонус!</string>
+    <string name="streak_days">Серия: %1$d дней.</string>
+    <string name="next_bonus_in">Следующий бонус через:</string>
+    <string name="claiming">Получаем...</string>
+    <string name="claimed_for_today">Бонус уже получен. Возаращайтесь позже</string>
+    <string name="claim_bonus">Получить бонус</string>
+    <string name="retry">Повторить</string>
 </resources>

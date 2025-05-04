@@ -172,4 +172,19 @@
     <string name="error_label">Error:</string>
     <string name="description_label">Description:</string>
     <string name="suggestion_label">Should be replaced with::</string>
+
+    <string name="topic_xp_required_title">Topic Locked</string>
+    <string name="topic_xp_required_message">You need %1$d XP to unlock this topic. You currently have %2$d XP.</string>
+    <string name="topic_required_xp">Requires %1$d XP</string>
+
+    <string name="daily_bonus">Daily Bonus</string>
+
+    <string name="daily_bonus_title">Daily Bonus!</string>
+    <string name="streak_days">Streak: %d days</string>
+    <string name="next_bonus_in">Next bonus in:</string>
+    <string name="claiming">Claiming...</string>
+    <string name="claimed_for_today">Claimed for today</string>
+    <string name="claim_bonus">Claim bonus</string>
+    <string name="retry">Retry</string>
+
 </resources>

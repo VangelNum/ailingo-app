@@ -4,6 +4,7 @@ import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.achievements
 import ailingo.composeapp.generated.resources.additional
 import ailingo.composeapp.generated.resources.chat_history
+import ailingo.composeapp.generated.resources.daily_bonus
 import ailingo.composeapp.generated.resources.dictionary
 import ailingo.composeapp.generated.resources.favourite_words
 import ailingo.composeapp.generated.resources.leaderboard
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Topic
@@ -33,6 +35,7 @@ val screenForLargePortrait = listOf(
     ScreenInfo(ChatHistoryPage, Res.string.chat_history, Icons.Filled.History),
     ScreenInfo(DictionaryPage(), Res.string.dictionary, Icons.Filled.Book),
     ScreenInfo(FavouriteWordsPage, Res.string.favourite_words, Icons.Filled.Favorite),
+    ScreenInfo(DailyBonusPage, Res.string.daily_bonus, Icons.Filled.MonetizationOn),
     ScreenInfo(AchievementsPage, Res.string.achievements, Icons.Filled.Star),
     ScreenInfo(LeaderboardPage, Res.string.leaderboard, Icons.Filled.Leaderboard),
     ScreenInfo(ProfilePage, Res.string.profile, Icons.Filled.Person)
@@ -105,6 +108,9 @@ object AchievementsPage
 
 @Serializable
 object LecturePage
+
+@Serializable
+object DailyBonusPage
 
 @Serializable
 data class AnalysisPage(

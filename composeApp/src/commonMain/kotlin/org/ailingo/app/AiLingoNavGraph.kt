@@ -54,6 +54,8 @@ import org.ailingo.app.features.chat.presentation.ChatScreen
 import org.ailingo.app.features.chat.presentation.ChatViewModel
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryScreen
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
+import org.ailingo.app.features.dailybonus.presentation.DailyBonusScreen
+import org.ailingo.app.features.dailybonus.presentation.DailyBonusViewModel
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryScreen
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryViewModel
 import org.ailingo.app.features.favouritewords.presentation.FavouriteScreen
@@ -136,6 +138,7 @@ fun AiLingoNavGraph(
         AdditionalPage::class,
         AchievementsPage::class,
         AnalysisPage::class,
+        DailyBonusPage::class,
     )
 
     val isNavigationDrawerVisible = currentDestination?.let { dest ->
@@ -244,8 +247,14 @@ fun AiLingoNavGraph(
                     composable<TopicsPage> {
                         val topicsViewModel = koinViewModel<TopicViewModel>()
                         val topicsUiState = topicsViewModel.topicState.collectAsStateWithLifecycle().value
+                        val currentUserXp = if (loginState is UiState.Success) {
+                            loginState.data.xp
+                        } else {
+                            -1
+                        }
                         TopicsScreen(
                             topicsUiState = topicsUiState,
+                            currentUserXp = currentUserXp,
                             onTopicClick = { topicName, topicImage ->
                                 navController.navigate(
                                     ChatPage(
@@ -279,6 +288,12 @@ fun AiLingoNavGraph(
                                 navController.navigate(AnalysisPage(chatViewModel.conversationId))
                             }
                         )
+
+                        LaunchedEffect(chatViewModel.conversationId) {
+                            if (chatViewModel.conversationId != "") {
+                                loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
+                            }
+                        }
                     }
                     composable<ProfilePage> {
                         ProfileScreen(
@@ -443,7 +458,6 @@ fun AiLingoNavGraph(
                                 loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
                             }
                         }
-
                     }
                     composable<BunsPage> {
                         BunsScreen(onNavigateToHomeScreen = {
@@ -467,6 +481,9 @@ fun AiLingoNavGraph(
                             },
                             onNavigateToAchievements = {
                                 navController.navigate(AchievementsPage)
+                            },
+                            onNavigateToDailyBonus = {
+                                navController.navigate(DailyBonusPage)
                             }
                         )
                     }
@@ -497,6 +514,16 @@ fun AiLingoNavGraph(
                             },
                             analysisState = analysisState
                         )
+                    }
+                    composable<DailyBonusPage> {
+                        val dailyBonusViewModel = koinViewModel<DailyBonusViewModel>()
+                        val dailyBonusInfoState = dailyBonusViewModel.dailyBonusInfoState.collectAsStateWithLifecycle().value
+                        val claimDailyBonusState = dailyBonusViewModel.claimDailyBonusInfoState.collectAsStateWithLifecycle().value
+                        DailyBonusScreen(dailyBonusInfoState, claimDailyBonusState, onEvent = {
+                            dailyBonusViewModel.onEvent(it)
+                        }, onRefreshUserInfo = {
+                            loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
+                        })
                     }
                 }
             }

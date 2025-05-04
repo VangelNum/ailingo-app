@@ -2,6 +2,7 @@ package org.ailingo.app.features.additional.presentation
 
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.achievements
+import ailingo.composeapp.generated.resources.daily_bonus
 import ailingo.composeapp.generated.resources.leaderboard
 import ailingo.composeapp.generated.resources.profile
 import ailingo.composeapp.generated.resources.profilepixel
@@ -44,10 +45,12 @@ fun AdditionalScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToLeaderboard: () -> Unit,
     onNavigateToAchievements: () -> Unit,
+    onNavigateToDailyBonus: () -> Unit,
 ) {
     val items: List<AdditionalItems> = listOf(
         AdditionalItems.Profile,
         AdditionalItems.Leaderboard,
+        AdditionalItems.DailyBonus,
         AdditionalItems.Achievements,
     )
 
@@ -69,6 +72,7 @@ fun AdditionalScreen(
                             AdditionalItems.Profile -> onNavigateToProfile()
                             AdditionalItems.Leaderboard -> onNavigateToLeaderboard()
                             AdditionalItems.Achievements -> onNavigateToAchievements()
+                            AdditionalItems.DailyBonus -> onNavigateToDailyBonus()
                         }
                     }
                     .height(150.dp),
@@ -131,6 +135,11 @@ sealed class AdditionalItems(
     object Profile : AdditionalItems(
         titleResId = Res.string.profile,
         image = Res.drawable.profilepixel
+    )
+
+    object DailyBonus : AdditionalItems(
+        titleResId = Res.string.daily_bonus,
+        image = Res.drawable.daily_bonus
     )
 
     object Leaderboard : AdditionalItems(

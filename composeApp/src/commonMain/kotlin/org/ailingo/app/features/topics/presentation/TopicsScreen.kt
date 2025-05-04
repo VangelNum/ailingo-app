@@ -24,6 +24,7 @@ import org.ailingo.app.features.topics.data.model.Topic
 @Composable
 fun TopicsScreen(
     topicsUiState: UiState<List<Topic>>,
+    currentUserXp: Int,
     onTopicClick: (String, String) -> Unit
 ) {
     when (topicsUiState) {
@@ -44,7 +45,7 @@ fun TopicsScreen(
                     image = Res.drawable.emptystate
                 )
             } else {
-                TopicsContent(topicsUiState.data, onTopicClick)
+                TopicsContent(topicsUiState.data, currentUserXp, onTopicClick)
             }
         }
     }
@@ -53,6 +54,7 @@ fun TopicsScreen(
 @Composable
 fun TopicsContent(
     topics: List<Topic>,
+    currentUserXp: Int,
     onTopicClick: (String, String) -> Unit
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
@@ -69,7 +71,7 @@ fun TopicsContent(
         modifier = Modifier.fillMaxSize()
     ) {
         items(topics) { topic ->
-            ContentTopics(topic, onTopicClick)
+            ContentTopics(topic, currentUserXp, onTopicClick)
         }
     }
 }

@@ -355,8 +355,7 @@ fun AnalysisSuccessContent(analysisState: AnalysisState) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(start = 16.dp, end = 16.dp)
     ) {
         items(allAnalysisResults, key = { it.messageId }) { analysisInfo ->
             AnalysisResultCard(analysisInfo = analysisInfo)

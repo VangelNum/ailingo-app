@@ -3,6 +3,7 @@ package org.ailingo.app.di
 import org.ailingo.app.features.analysis.presentation.AnalysisViewModel
 import org.ailingo.app.features.chat.presentation.ChatViewModel
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
+import org.ailingo.app.features.dailybonus.presentation.DailyBonusViewModel
 import org.ailingo.app.features.dictionary.main.presentation.DictionaryViewModel
 import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewModel
 import org.ailingo.app.features.leaderboard.presentation.LeaderboardViewModel
@@ -34,4 +35,5 @@ val viewModelModule = module {
     viewModel { LeaderboardViewModel(get()) }
     viewModel { ChatHistoryViewModel(get()) }
     viewModel { AnalysisViewModel(get()) }
+    viewModel { DailyBonusViewModel(get()) }
 }

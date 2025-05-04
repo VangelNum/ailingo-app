@@ -9,6 +9,9 @@ import ailingo.composeapp.generated.resources.loading_error
 import ailingo.composeapp.generated.resources.topic_completed
 import ailingo.composeapp.generated.resources.topic_confirmation_message
 import ailingo.composeapp.generated.resources.topic_confirmation_title
+import ailingo.composeapp.generated.resources.topic_required_xp
+import ailingo.composeapp.generated.resources.topic_xp_required_message
+import ailingo.composeapp.generated.resources.topic_xp_required_title
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -53,30 +57,66 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ContentTopics(
     topic: Topic,
+    currentUserXp: Int,
     onTopicClick: (String, String) -> Unit
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f), Color.Transparent)
     )
-    var showDialog by remember { mutableStateOf(false) }
 
-    if (showDialog) {
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    var showXpRequirementDialog by remember { mutableStateOf(false) }
+
+    val requiredXp = topic.level * 100
+    val canAccessTopic = currentUserXp >= requiredXp || topic.level == 0
+
+    if (showConfirmationDialog) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showConfirmationDialog = false },
             title = { Text(stringResource(Res.string.topic_confirmation_title)) },
             text = {
-                Text(stringResource(Res.string.topic_confirmation_message, topic.name, topic.price.toString()))
+                Text(
+                    stringResource(
+                        Res.string.topic_confirmation_message,
+                        topic.name,
+                        topic.price.toString()
+                    )
+                )
             },
             confirmButton = {
                 Button(onClick = {
-                    onTopicClick(topic.name, topic.imageUrl)
-                    showDialog = false
+                    onTopicClick(
+                        topic.name,
+                        topic.imageUrl
+                    )
+                    showConfirmationDialog = false
                 }) {
                     Text(stringResource(Res.string.action_confirm))
                 }
             },
             dismissButton = {
-                Button(onClick = { showDialog = false }) {
+                Button(onClick = { showConfirmationDialog = false }) {
+                    Text(stringResource(Res.string.action_cancel))
+                }
+            }
+        )
+    }
+
+    if (showXpRequirementDialog) {
+        AlertDialog(
+            onDismissRequest = { showXpRequirementDialog = false },
+            title = { Text(stringResource(Res.string.topic_xp_required_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        Res.string.topic_xp_required_message,
+                        requiredXp,
+                        currentUserXp
+                    )
+                )
+            },
+            confirmButton = {
+                Button(onClick = { showXpRequirementDialog = false }) {
                     Text(stringResource(Res.string.action_cancel))
                 }
             }
@@ -84,9 +124,27 @@ fun ContentTopics(
     }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                if (!canAccessTopic && !topic.isCompleted) MaterialTheme.colorScheme.surfaceVariant
+                else MaterialTheme.colorScheme.primaryContainer
+        ),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.clickable { showDialog = true }
+        modifier = Modifier.clickable {
+            when {
+                topic.isCompleted -> {
+                    showConfirmationDialog = true
+                }
+
+                !canAccessTopic -> {
+                    showXpRequirementDialog = true
+                }
+
+                else -> {
+                    showConfirmationDialog = true
+                }
+            }
+        }
     ) {
         Box(
             modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp),
@@ -100,6 +158,7 @@ fun ContentTopics(
                     model = topic.imageUrl,
                     contentScale = ContentScale.Crop,
                     contentDescription = null,
+                    alpha = if (!canAccessTopic && !topic.isCompleted) 0.5f else 1f,
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight().drawWithCache {
@@ -109,7 +168,10 @@ fun ContentTopics(
                             }
                         },
                     loading = {
-                        Box(modifier = Modifier.fillMaxSize().aspectRatio(1f), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().aspectRatio(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
                             SmallLoadingIndicator()
                         }
                     },
@@ -117,17 +179,38 @@ fun ContentTopics(
                         if (LocalInspectionMode.current) {
                             Image(painter = painterResource(Res.drawable.defaultProfilePhoto), null)
                         } else {
-                            Box(modifier = Modifier.fillMaxSize().aspectRatio(1f), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.fillMaxSize().aspectRatio(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(stringResource(Res.string.loading_error))
                             }
                         }
                     },
                 )
+                if (!canAccessTopic && !topic.isCompleted) {
+                    Box(
+                        modifier = Modifier.wrapContentSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "LOCKED",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White.copy(alpha = 0.9f),
+                            modifier = Modifier
+                                .background(
+                                    Color.Black.copy(alpha = 0.4f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
             Text(
                 text = topic.name.uppercase(),
                 style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
+                color = if (!canAccessTopic && !topic.isCompleted) Color.Gray else Color.White,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .wrapContentHeight()
@@ -135,10 +218,11 @@ fun ContentTopics(
                     .padding(16.dp)
             )
         }
-        if (topic.isCompleted) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(8.dp)
-            ) {
+
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+            if (topic.isCompleted) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -154,21 +238,48 @@ fun ContentTopics(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
-        } else {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(8.dp)
-            ) {
+            } else if (!canAccessTopic) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        8.dp,
+                        Alignment.CenterHorizontally
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(
+                            Res.string.topic_required_xp,
+                            requiredXp
+                        ), // New string resource
+                        style = MaterialTheme.typography.titleMedium, // Smaller text style
+                        color = MaterialTheme.colorScheme.onErrorContainer // Text color for errorContainer background
+                    )
+                    // You could add an XP icon here if you have one
+                    // Image(painter = painterResource(Res.drawable.xp_icon), contentDescription = null, modifier = Modifier.size(24.dp))
+                }
+            } else {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.primary)
                         .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        16.dp,
+                        Alignment.CenterHorizontally
+                    ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(topic.price.toString(), style = MaterialTheme.typography.titleLarge, color = Color.White)
+                    Text(
+                        topic.price.toString(),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
                     Image(
                         painter = painterResource(Res.drawable.coins),
                         contentDescription = null,
