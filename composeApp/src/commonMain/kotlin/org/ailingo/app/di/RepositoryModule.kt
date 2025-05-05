@@ -1,5 +1,7 @@
 package org.ailingo.app.di
 
+import org.ailingo.app.features.achievements.data.repository.AchievementsRepositoryImpl
+import org.ailingo.app.features.achievements.domain.repository.AchievementsRepository
 import org.ailingo.app.features.analysis.data.repository.AnalysisRepositoryImpl
 import org.ailingo.app.features.analysis.domain.repository.AnalysisRepository
 import org.ailingo.app.features.basicauth.data.repository.AuthRepositoryImpl
@@ -92,5 +94,8 @@ val repositoryModule = module {
     }
     single<DailyBonusRepository> {
         DailyBonusRepositoryImpl(get(), get())
+    }
+    single<AchievementsRepository> {
+        AchievementsRepositoryImpl(get(), get())
     }
 }

@@ -1,5 +1,6 @@
 package org.ailingo.app.di
 
+import org.ailingo.app.features.achievements.presentation.AchievementsViewModel
 import org.ailingo.app.features.analysis.presentation.AnalysisViewModel
 import org.ailingo.app.features.chat.presentation.ChatViewModel
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
@@ -36,4 +37,5 @@ val viewModelModule = module {
     viewModel { ChatHistoryViewModel(get()) }
     viewModel { AnalysisViewModel(get()) }
     viewModel { DailyBonusViewModel(get()) }
+    viewModel { AchievementsViewModel(get()) }
 }

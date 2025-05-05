@@ -175,7 +175,7 @@
 
     <string name="topic_xp_required_title">Topic Locked</string>
     <string name="topic_xp_required_message">You need %1$d XP to unlock this topic. You currently have %2$d XP.</string>
-    <string name="topic_required_xp">Requires %1$d XP</string>
+    <string name="topic_required_xp">%1$d XP</string>
 
     <string name="daily_bonus">Daily Bonus</string>
 
@@ -190,5 +190,11 @@
     <string name="price">Price</string>
     <string name="gain">Gain</string>
     <string name="req">Req.</string>
+
+    <string name="coins_reward">Coins reward</string>
+    <string name="experience_reward">Experience reward</string>
+    <string name="claimed">Claimed</string>
+    <string name="claim">Claim</string>
+    <string name="locked">Locked</string>
 
 </resources>

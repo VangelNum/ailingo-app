@@ -172,7 +172,7 @@
 
     <string name="topic_xp_required_title">Топик Недоступен</string>
     <string name="topic_xp_required_message">Вам нужно %1$d XP, чтобы разблокировать эту тему. У вас сейчас %2$d XP.</string>
-    <string name="topic_required_xp">Требуется %1$d XP</string>
+    <string name="topic_required_xp">%1$d XP</string>
 
     <string name="daily_bonus">Ежедневный бонус</string>
 
@@ -187,4 +187,10 @@
     <string name="price">Цена</string>
     <string name="gain">Получите</string>
     <string name="req">Треб.</string>
+
+    <string name="coins_reward">Награда в монетах</string>
+    <string name="experience_reward">Награда в опыте</string>
+    <string name="claimed">Получено</string>
+    <string name="claim">Получить</string>
+    <string name="locked">Заблокировано</string>
 </resources>

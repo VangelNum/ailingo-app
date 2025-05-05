@@ -85,6 +85,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.analysis.data.model.AnalysisInfo
 import org.ailingo.app.features.analysis.data.model.IssuesMessage
@@ -320,7 +321,7 @@ fun AnalysisTypeCard(type: AnalysisType, onClick: () -> Unit) {
             ) {
                 Text(
                     text = stringResource(type.title).uppercase(),
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     color = Color.White,
@@ -328,6 +329,7 @@ fun AnalysisTypeCard(type: AnalysisType, onClick: () -> Unit) {
                         .weight(1f)
                         .padding(end = 16.dp),
                     textAlign = TextAlign.Center,
+                    lineHeight = 1.em
                 )
 
                 Card(shape = MaterialTheme.shapes.large) {

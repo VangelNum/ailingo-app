@@ -45,7 +45,9 @@ import org.ailingo.app.core.presentation.snackbar.ObserveAsEvents
 import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.topappbar.TopAppBarCenter
 import org.ailingo.app.core.presentation.topappbar.TopAppBarWithProfile
+import org.ailingo.app.features.achievements.presentation.AchievementsEvent
 import org.ailingo.app.features.achievements.presentation.AchievementsScreen
+import org.ailingo.app.features.achievements.presentation.AchievementsViewModel
 import org.ailingo.app.features.additional.presentation.AdditionalScreen
 import org.ailingo.app.features.analysis.presentation.AnalysisScreen
 import org.ailingo.app.features.analysis.presentation.AnalysisViewModel
@@ -501,7 +503,18 @@ fun AiLingoNavGraph(
                         })
                     }
                     composable<AchievementsPage> {
-                        AchievementsScreen()
+                        val achievementViewModel = koinViewModel<AchievementsViewModel>()
+                        val achievementUiState = achievementViewModel.achievementsState.collectAsStateWithLifecycle().value
+                        val claimAchievementState = achievementViewModel.claimAchievementsState.collectAsStateWithLifecycle().value
+                        AchievementsScreen(achievementUiState, claimAchievementState, onEvent = { event->
+                            achievementViewModel.onEvent(event)
+                        })
+                        LaunchedEffect(claimAchievementState) {
+                            if (claimAchievementState is UiState.Success) {
+                                achievementViewModel.onEvent(AchievementsEvent.OnGetAchievementsInfo)
+                                loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
+                            }
+                        }
                     }
                     composable<AnalysisPage> { backStack ->
                         val args = backStack.toRoute<AnalysisPage>()
