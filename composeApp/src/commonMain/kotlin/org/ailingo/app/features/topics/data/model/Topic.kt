@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class Topic(
     val id: Int,
     val name: String,
-    val imageUrl: String,
+    val imageUrl: String?,
     val price: Int,
     val level: Int,
     val welcomePrompt: String,

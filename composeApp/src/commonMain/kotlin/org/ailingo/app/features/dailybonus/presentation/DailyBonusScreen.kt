@@ -329,9 +329,9 @@ fun DailyBonusCircle(
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 1000
-                1f at 0 with LinearEasing
-                2f at 500 with LinearEasing
-                1f at 1000 with LinearEasing
+                1f at 0 using LinearEasing
+                2f at 500 using LinearEasing
+                1f at 1000 using LinearEasing
             },
         ), label = "animatedBorderWidth"
     )

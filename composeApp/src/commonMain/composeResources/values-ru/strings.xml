@@ -170,7 +170,7 @@
     <string name="description_label">Описание:</string>
     <string name="suggestion_label">Следует заменить на:</string>
 
-    <string name="topic_xp_required_title">Топик Недоступен</string>
+    <string name="topic_xp_required_title">Топик недоступен</string>
     <string name="topic_xp_required_message">Вам нужно %1$d XP, чтобы разблокировать эту тему. У вас сейчас %2$d XP.</string>
     <string name="topic_required_xp">%1$d XP</string>
 
@@ -193,4 +193,11 @@
     <string name="claimed">Получено</string>
     <string name="claim">Получить</string>
     <string name="locked">Заблокировано</string>
+
+    <string name="enter_custom_topic">Введите свою тему</string>
+    <string name="type_topic_hint">Введите название темы</string>
+    <string name="start_chat">Начать чат</string>
+    <string name="cancel">Отмена</string>
+    <string name="start_your_topic">Начать свою тему</string>
+    <string name="topic_locked">Тема заблокирована</string>
 </resources>

@@ -75,6 +75,7 @@ import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
 import org.ailingo.app.features.registration.presentation.RegistrationEvent
 import org.ailingo.app.features.registration.presentation.RegistrationScreen
 import org.ailingo.app.features.registration.presentation.email_verification.VerifyEmailScreen
+import org.ailingo.app.features.topics.presentation.DEFAULT_IMAGE_URL
 import org.ailingo.app.features.topics.presentation.TopicViewModel
 import org.ailingo.app.features.topics.presentation.TopicsScreen
 import org.ailingo.app.features.updateavatar.presentation.UpdateAvatarScreen
@@ -260,9 +261,16 @@ fun AiLingoNavGraph(
                             onTopicClick = { topicName, topicImage ->
                                 navController.navigate(
                                     ChatPage(
-                                        chatId = null,
                                         topicName = topicName,
                                         topicImage = topicImage
+                                    )
+                                )
+                            },
+                            onClickCustomTopic = { topicIdea ->
+                                navController.navigate(
+                                    ChatPage(
+                                        topicIdea = topicIdea,
+                                        topicImage = null
                                     )
                                 )
                             }
@@ -270,14 +278,14 @@ fun AiLingoNavGraph(
                     }
                     composable<ChatPage> { backStackEntry ->
                         val args = backStackEntry.toRoute<ChatPage>()
-                        val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName, args.chatId) }
+                        val chatViewModel: ChatViewModel = koinViewModel { parametersOf(args.topicName, args.chatId, args.topicIdea) }
                         val chatUiState = chatViewModel.chatState.collectAsStateWithLifecycle().value
                         val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
                         val translateState = chatViewModel.translateState.collectAsStateWithLifecycle().value
                         val singleMessageCheckState = chatViewModel.singleMessageCheckState.collectAsStateWithLifecycle().value
                         ChatScreen(
-                            topicName = args.topicName,
-                            topicImage = args.topicImage,
+                            topicName = args.topicName ?: args.topicIdea ?: "empty?",
+                            topicImage = args.topicImage?: DEFAULT_IMAGE_URL,
                             chatUiState = chatUiState,
                             messagesState = messagesState,
                             translateState = translateState,

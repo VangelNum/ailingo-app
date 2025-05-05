@@ -51,6 +51,7 @@ import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.chathistory.data.model.ConversationHistory
+import org.ailingo.app.features.topics.presentation.DEFAULT_IMAGE_URL
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -119,7 +120,7 @@ fun ConversationHistoryItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable {
-                onNavigateToSelectedChat(conversation.conversationId, conversation.topicName, conversation.topicImage)
+                onNavigateToSelectedChat(conversation.conversationId, conversation.topicName, conversation.topicImage ?: DEFAULT_IMAGE_URL)
             },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -131,7 +132,7 @@ fun ConversationHistoryItem(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             AsyncImage(
-                model = conversation.topicImage,
+                model = conversation.topicImage ?: DEFAULT_IMAGE_URL,
                 contentDescription = conversation.topicName,
                 modifier = Modifier
                     .size(56.dp)

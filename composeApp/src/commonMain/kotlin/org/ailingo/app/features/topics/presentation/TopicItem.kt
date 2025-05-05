@@ -66,8 +66,10 @@ import org.ailingo.app.features.topics.data.model.Topic
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+const val DEFAULT_IMAGE_URL = "https://i.ibb.co/YB1hWJWb/default-Profile-Photo.png"
+
 @Composable
-fun ContentTopics(
+fun TopicItem(
     topic: Topic,
     currentUserXp: Int,
     onTopicClick: (String, String) -> Unit
@@ -88,9 +90,6 @@ fun ContentTopics(
             onDismissRequest = { showConfirmationDialog = false },
             title = { Text(stringResource(Res.string.topic_confirmation_title)) },
             text = {
-                // Note: Confirmation dialog text mentions price, regardless of completion.
-                // If a completed topic is clicked, this dialog still shows the original price.
-                // This matches the user's request to show the price below even if completed.
                 Text(
                     stringResource(
                         Res.string.topic_confirmation_message,
@@ -101,7 +100,7 @@ fun ContentTopics(
             },
             confirmButton = {
                 Button(onClick = {
-                    onTopicClick(topic.name, topic.imageUrl)
+                    onTopicClick(topic.name, topic.imageUrl?: DEFAULT_IMAGE_URL)
                     showConfirmationDialog = false
                 }) {
                     Text(stringResource(Res.string.action_confirm))
@@ -135,8 +134,6 @@ fun ContentTopics(
             }
         )
     }
-    // --- End Dialogs ---
-
 
     Card(
         colors = CardDefaults.cardColors(
@@ -169,7 +166,7 @@ fun ContentTopics(
                 .clip(RoundedCornerShape(16.dp))
         ) {
             SubcomposeAsyncImage(
-                model = topic.imageUrl,
+                model = topic.imageUrl?: DEFAULT_IMAGE_URL,
                 contentScale = ContentScale.Crop,
                 contentDescription = topic.name,
                 alpha = if (!canAccessTopic && !topic.isCompleted) 0.5f else 1f, // Image alpha only affected by lock status

@@ -209,7 +209,7 @@ fun ChatScreen(
                 ) {
                     AsyncImage(
                         model = topicImage,
-                        contentDescription = topicName, // Topic name can be content description
+                        contentDescription = topicName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -217,7 +217,8 @@ fun ChatScreen(
                 Text(
                     topicName,
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = 8.dp),
+                    maxLines = 1
                 )
             }
         }
@@ -238,7 +239,7 @@ fun ChatScreen(
                         onSuggestionClicked = { suggestion ->
                             onEvent(ChatEvents.OnSendMessage(suggestion))
                         },
-                        chatUiState = chatUiState, // Pass chatUiState to ChatMessageItem
+                        chatUiState = chatUiState,
                         onTranslate = { text ->
                             selectedText = text
                             onEvent(ChatEvents.OnTranslateText(text))
@@ -254,7 +255,6 @@ fun ChatScreen(
                         }
                     )
                 }
-                // Show loading/error state messages only if conversation is not finished
                 if (!isConversationFinished) {
                     when (chatUiState) {
                         is UiState.Error -> {

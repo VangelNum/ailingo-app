@@ -39,6 +39,23 @@ class ChatRepositoryImpl(
         }
     }
 
+    override fun startCustomChat(topicIdea: String): Flow<UiState<Conversation>> = flow {
+        emit(UiState.Loading())
+        try {
+            val response = httpClient.post("$BASE_URL/api/v1/conversations/custom") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(topicIdea)
+            }
+            if (response.status.isSuccess()) {
+                emit(UiState.Success(response.body<Conversation>()))
+            } else {
+                emit(UiState.Error(errorMapper.mapError(httpResponse = response)))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(errorMapper.mapError(e)))
+        }
+    }
+
     override fun sendMessage(conversationId: String, message: String): Flow<UiState<Conversation>> = flow {
         emit(UiState.Loading())
         try {

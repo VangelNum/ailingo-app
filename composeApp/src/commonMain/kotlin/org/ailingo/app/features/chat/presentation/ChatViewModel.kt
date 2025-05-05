@@ -22,8 +22,9 @@ import kotlin.uuid.Uuid
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val translateRepository: TranslateRepository,
-    topicName: String,
-    chatId: String?
+    topicName: String?,
+    chatId: String?,
+    topicIdea: String?
 ) : ViewModel() {
     private val _chatState = MutableStateFlow<UiState<MutableList<Conversation>>>(UiState.Idle())
     val chatState = _chatState.asStateFlow()
@@ -40,10 +41,12 @@ class ChatViewModel(
     val singleMessageCheckState = _singleMessageCheckState.asStateFlow()
 
     init {
-        if (chatId == null) {
+        if (topicIdea != null) {
+            onEvent(ChatEvents.OnStartCustomConversation(topicIdea))
+        } else if (chatId == null && topicName != null) {
             onEvent(ChatEvents.OnStartConversation(topicName))
         } else {
-            onEvent(ChatEvents.OnGetMessagesSelectedChat(chatId))
+            onEvent(ChatEvents.OnGetMessagesSelectedChat(chatId!!))
         }
     }
 
@@ -60,6 +63,7 @@ class ChatViewModel(
             is ChatEvents.OnGetMessagesSelectedChat -> getMessagesFromSelectedChat(event.conversationId)
             is ChatEvents.OnTranslateText -> translateText(event.text)
             is ChatEvents.OnCheckSingleMessage -> checkSingleMessage(event.userInput)
+            is ChatEvents.OnStartCustomConversation -> startCustomConversation(event.topicIdea)
         }
     }
 
@@ -73,7 +77,7 @@ class ChatViewModel(
 
     private fun translateText(text: String) {
         viewModelScope.launch {
-            translateRepository.translate(text).collect { state->
+            translateRepository.translate(text).collect { state ->
                 _translateState.value = state
             }
         }
@@ -97,6 +101,33 @@ class ChatViewModel(
         _chatState.value = UiState.Loading()
         viewModelScope.launch {
             chatRepository.startChat(topicName).collect { state ->
+                when (state) {
+                    is UiState.Success -> {
+                        conversationId = state.data.conversationId
+                        _messages.value = mutableListOf(state.data)
+                        _chatState.value = UiState.Success(mutableListOf(state.data))
+                    }
+
+                    is UiState.Error -> {
+                        _chatState.value = UiState.Error(state.message)
+                    }
+
+                    is UiState.Loading -> {
+                        _chatState.value = UiState.Loading()
+                    }
+
+                    is UiState.Idle -> {
+                        _chatState.value = UiState.Idle()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startCustomConversation(topicIdea: String) {
+        _chatState.value = UiState.Loading()
+        viewModelScope.launch {
+            chatRepository.startCustomChat(topicIdea).collect { state ->
                 when (state) {
                     is UiState.Success -> {
                         conversationId = state.data.conversationId

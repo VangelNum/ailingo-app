@@ -53,9 +53,10 @@ object LoginPage
 
 @Serializable
 data class ChatPage(
-    val chatId: String?,
-    val topicName: String,
-    val topicImage: String
+    val chatId: String? = null,
+    val topicName: String? = null,
+    val topicImage: String? = null,
+    val topicIdea: String? = null
 )
 
 @Serializable

@@ -197,4 +197,10 @@
     <string name="claim">Claim</string>
     <string name="locked">Locked</string>
 
+    <string name="enter_custom_topic">Enter your custom topic</string>
+    <string name="type_topic_hint">Type topic name</string>
+    <string name="start_chat">Start chat</string>
+    <string name="cancel">Cancel</string>
+    <string name="start_your_topic">Start your topic</string>
+    <string name="topic_locked">Topic locked</string>
 </resources>
