@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.analysis.domain.repository.AnalysisRepository
 
 
@@ -18,6 +19,7 @@ class AnalysisViewModel(
     val analysisState: StateFlow<AnalysisState> = _analysisState.asStateFlow()
 
     fun onEvent(event: AnalysisEvent) {
+        _analysisState.update { it.copy(basicGrammarState = UiState.Idle(), vocabularyPhrasingState = UiState.Idle(), clarityStyleState = UiState.Idle(), beginnerErrorsState = UiState.Idle()) }
         when (event) {
             is AnalysisEvent.OnCheckBasicGrammar -> analysisBasicGrammar(event.conversationId)
             is AnalysisEvent.OnCheckVocabularyPhrasing -> analysisVocabularyPhrasing(event.conversationId)

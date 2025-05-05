@@ -248,7 +248,6 @@ fun IdleAnalysisContent(onEvent: (AnalysisEvent) -> Unit, conversationId: String
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 16.dp, end = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         items(analysisTypes) { item ->
@@ -264,6 +263,7 @@ fun IdleAnalysisContent(onEvent: (AnalysisEvent) -> Unit, conversationId: String
                     }
                 }
             )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -369,10 +369,10 @@ fun AnalysisSuccessContent(analysisState: AnalysisState) {
 @Composable
 private fun String.toUserFacingAnalysisTypeName(): String {
     return when (this) {
-        "basic grammar" -> stringResource(Res.string.basic_grammar_analysis_title)
-        "beginner errors" -> stringResource(Res.string.beginner_errors_analysis_title)
-        "clarity" -> stringResource(Res.string.clarity_style_analysis_title)
-        "vocabulary phrasing" -> stringResource(Res.string.vocabulary_phrasing_analysis_title)
+        "BASIC_GRAMMAR" -> stringResource(Res.string.basic_grammar_analysis_title)
+        "BEGINNER-ERRORS" -> stringResource(Res.string.beginner_errors_analysis_title)
+        "CLARITY" -> stringResource(Res.string.clarity_style_analysis_title)
+        "VOCABULARY_PHRASING" -> stringResource(Res.string.vocabulary_phrasing_analysis_title)
         else -> this
     }
 }
