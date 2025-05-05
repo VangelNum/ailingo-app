@@ -359,7 +359,7 @@ fun AnalysisSuccessContent(analysisState: AnalysisState) {
             .fillMaxSize()
             .padding(start = 16.dp, end = 16.dp)
     ) {
-        items(allAnalysisResults, key = { it.messageId }) { analysisInfo ->
+        items(allAnalysisResults) { analysisInfo ->
             AnalysisResultCard(analysisInfo = analysisInfo)
             Spacer(modifier = Modifier.height(16.dp))
         }

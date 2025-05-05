@@ -414,7 +414,7 @@ fun TranslateMessageBottomSheet(
             }
         ) {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp)
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
             ) {
                 Text(
                     selectedText,
@@ -507,6 +507,7 @@ fun SingleMessageCheckBottomSheet(
         ) {
             Column(
                 modifier = Modifier
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
