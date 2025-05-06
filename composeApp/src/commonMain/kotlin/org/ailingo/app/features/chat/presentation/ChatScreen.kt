@@ -62,6 +62,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
@@ -698,6 +699,9 @@ fun ChatMessageItem(
                                 Icon(Icons.Default.Translate, contentDescription = stringResource(Res.string.translate))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(stringResource(Res.string.translate))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                //TODO PLAY AUDIO ON ALL PLATFORMS
+                                Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null)
                             }
                         }
                     }

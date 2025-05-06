@@ -121,12 +121,14 @@ fun AnalysisScreen(
             )
         }
     ) { padding ->
+        val topPadding = padding.calculateTopPadding()
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(),
             color = MaterialTheme.colorScheme.background
         ) {
+            Spacer(modifier = Modifier.height(topPadding))
             AnimatedContent(
                 targetState = Pair(analysisState, showAnalysisTypes),
                 transitionSpec = {
@@ -345,7 +347,7 @@ fun AnalysisTypeCard(type: AnalysisType, onClick: () -> Unit) {
                             modifier = Modifier.size(118.dp),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.5f), BlendMode.Multiply)
+                            colorFilter = ColorFilter.tint(Color.Gray.copy(alpha = 0.5f), BlendMode.Multiply)
                         )
                     }
                     if (type == AnalysisType.ClarityStyle || type == AnalysisType.VocabularyPhrasing) {
