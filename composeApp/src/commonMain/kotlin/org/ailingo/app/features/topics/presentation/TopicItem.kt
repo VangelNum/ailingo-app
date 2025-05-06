@@ -7,6 +7,7 @@ import ailingo.composeapp.generated.resources.action_ok
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
 import ailingo.composeapp.generated.resources.gain
+import ailingo.composeapp.generated.resources.go_to_shop
 import ailingo.composeapp.generated.resources.icon_experience
 import ailingo.composeapp.generated.resources.loading_error
 import ailingo.composeapp.generated.resources.price
@@ -76,7 +77,8 @@ fun TopicItem(
     topic: Topic,
     currentUserXp: Int,
     currentUserCoins: Int,
-    onTopicClick: (String, String) -> Unit
+    onTopicClick: (String, String) -> Unit,
+    onGoToShopClick: () -> Unit // Add this lambda parameter
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f), Color.Transparent)
@@ -104,6 +106,14 @@ fun TopicItem(
                 )
             },
             confirmButton = {
+                Button(onClick = {
+                    showInsufficientCoinsDialog = false
+                    onGoToShopClick()
+                }) {
+                    Text(stringResource(Res.string.go_to_shop))
+                }
+            },
+            dismissButton = {
                 Button(onClick = { showInsufficientCoinsDialog = false }) {
                     Text(stringResource(Res.string.action_ok))
                 }

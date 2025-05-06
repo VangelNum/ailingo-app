@@ -278,6 +278,9 @@ fun AiLingoNavGraph(
                                         topicImage = null
                                     )
                                 )
+                            },
+                            onGoToShopClick = {
+                                navController.navigate(ShopPage)
                             }
                         )
                     }

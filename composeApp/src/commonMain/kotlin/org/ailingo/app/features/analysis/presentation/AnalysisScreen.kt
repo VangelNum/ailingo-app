@@ -4,6 +4,7 @@ import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.basic_grammar_analysis_title
 import ailingo.composeapp.generated.resources.beginner_errors_analysis_title
 import ailingo.composeapp.generated.resources.clarity_style_analysis_title
+import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.description_label
 import ailingo.composeapp.generated.resources.issues_found_label
 import ailingo.composeapp.generated.resources.loading_analysis_text
@@ -41,6 +42,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -76,8 +78,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
@@ -320,27 +324,53 @@ fun AnalysisTypeCard(type: AnalysisType, onClick: () -> Unit) {
                     .fillMaxSize()
                     .padding(16.dp),
             ) {
-                Text(
-                    text = stringResource(type.title).uppercase(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    color = Color.White,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 16.dp),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 1.em
-                )
-
-                Card(shape = MaterialTheme.shapes.large) {
-                    Image(
-                        painter = painterResource(type.image),
-                        modifier = Modifier.size(118.dp),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = stringResource(type.title).uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 1.em
                     )
                 }
+
+                Box(modifier = Modifier.size(118.dp), contentAlignment = Alignment.Center) {
+                    Card(shape = MaterialTheme.shapes.large) {
+                        Image(
+                            painter = painterResource(type.image),
+                            modifier = Modifier.size(118.dp),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.5f), BlendMode.Multiply)
+                        )
+                    }
+                    if (type == AnalysisType.ClarityStyle || type == AnalysisType.VocabularyPhrasing) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Image(
+                                painter = painterResource(Res.drawable.coins),
+                                contentDescription = "Coin",
+                                modifier = Modifier.size(30.dp)
+                            )
+
+                            Spacer(modifier= Modifier.width(4.dp))
+
+                            Text(
+                                text = "20",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+
             }
         }
     }

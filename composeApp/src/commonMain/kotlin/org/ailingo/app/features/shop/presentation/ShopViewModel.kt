@@ -13,11 +13,8 @@ import org.ailingo.app.features.shop.domain.repository.ShopRepository
 class ShopViewModel(
     private val shopRepository: ShopRepository,
 ) : ViewModel() {
-    // State now holds a list of ShopItemUiState, each with its own purchase state
     private val _availableItemsState = MutableStateFlow<UiState<List<ShopItemUiState>>>(UiState.Idle())
     val availableItemsState = _availableItemsState.asStateFlow()
-
-    // Remove the global _purchaseCoinsState
 
     init {
         onEvent(ShopEvent.OnGetAvailableItems)
@@ -30,7 +27,6 @@ class ShopViewModel(
         }
     }
 
-    // Fetch items and map them to ShopItemUiState with initial Idle state
     fun getAvailableItems() {
         viewModelScope.launch {
             shopRepository.getAvailableItems().collect { uiState ->
@@ -39,11 +35,8 @@ class ShopViewModel(
                         is UiState.Loading -> UiState.Loading()
                         is UiState.Error -> UiState.Error(uiState.message)
                         is UiState.Success -> {
-                            // Map fetched ShopItems to ShopItemUiState, preserving existing state if possible
-                            // or initializing to Idle
                             val currentItems = (currentState as? UiState.Success)?.data ?: emptyList()
                             val newItems = uiState.data.map { shopItem ->
-                                // Try to find the existing item state to preserve purchase state
                                 val existingItemState = currentItems.find { it.shopItem.id == shopItem.id }
                                 ShopItemUiState(
                                     shopItem = shopItem,
@@ -59,18 +52,14 @@ class ShopViewModel(
         }
     }
 
-    // Purchase coins for a specific item
     fun purchaseCoins(itemId: Long) {
-        // Ensure we are not already processing for this item or globally
         val currentListState = _availableItemsState.value
         if (currentListState is UiState.Success) {
             val itemToPurchase = currentListState.data.find { it.shopItem.id == itemId }
             if (itemToPurchase?.purchaseUiState is UiState.Loading) {
-                // Already processing this item
                 return
             }
 
-            // Update the specific item's state to Loading
             _availableItemsState.update { currentState ->
                 if (currentState is UiState.Success) {
                     val updatedList = currentState.data.map { item ->
@@ -82,26 +71,24 @@ class ShopViewModel(
                     }
                     UiState.Success(updatedList)
                 } else {
-                    currentState // Should ideally be Success when purchase is initiated
+                    currentState
                 }
             }
 
-            // Launch the purchase coroutine
             viewModelScope.launch {
                 shopRepository.purchaseCoins(itemId).collect { purchaseResultState ->
-                    // Update the specific item's state based on the purchase result
                     _availableItemsState.update { currentState ->
                         if (currentState is UiState.Success) {
                             val updatedList = currentState.data.map { item ->
                                 if (item.shopItem.id == itemId) {
-                                    item.copy(purchaseUiState = purchaseResultState) // Update with Success/Error
+                                    item.copy(purchaseUiState = purchaseResultState)
                                 } else {
                                     item
                                 }
                             }
                             UiState.Success(updatedList)
                         } else {
-                            currentState // Should ideally be Success
+                            currentState
                         }
                     }
                 }
@@ -112,5 +99,5 @@ class ShopViewModel(
 
 data class ShopItemUiState(
     val shopItem: ShopItem,
-    val purchaseUiState: UiState<String> = UiState.Idle() // State specifically for this item's purchase
+    val purchaseUiState: UiState<String> = UiState.Idle()
 )

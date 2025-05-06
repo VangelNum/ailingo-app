@@ -75,7 +75,8 @@ fun TopicsScreen(
     currentUserXp: Int,
     currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit,
-    onClickCustomTopic: (String) -> Unit
+    onClickCustomTopic: (String) -> Unit,
+    onGoToShopClick: () -> Unit
 ) {
     var showCustomTopicDialog by remember { mutableStateOf(false) }
     var customTopicText by remember { mutableStateOf("") }
@@ -103,7 +104,8 @@ fun TopicsScreen(
                     currentUserXp = currentUserXp,
                     currentUserCoins = currentUserCoins,
                     onTopicClick = onTopicClick,
-                    onCustomTopicCardClick = { showCustomTopicDialog = true }
+                    onCustomTopicCardClick = { showCustomTopicDialog = true },
+                    onGoToShopClick = onGoToShopClick
                 )
             }
         }
@@ -283,7 +285,8 @@ fun TopicsContent(
     currentUserXp: Int,
     currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit,
-    onCustomTopicCardClick: () -> Unit
+    onCustomTopicCardClick: () -> Unit,
+    onGoToShopClick: () -> Unit // Add this lambda parameter
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val adaptiveLazyGridSize =
@@ -310,7 +313,8 @@ fun TopicsContent(
                 topic,
                 currentUserXp,
                 currentUserCoins,
-                onTopicClick
+                onTopicClick,
+                onGoToShopClick = onGoToShopClick
             )
         }
     }

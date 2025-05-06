@@ -1,6 +1,5 @@
 package org.ailingo.app.features.shop.presentation
 
-// Import the new presentation data class
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.coins_for_shop
@@ -57,7 +56,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ShopScreen(
-    // Now receives UiState of a list of ShopItemUiState
     availableItemsState: UiState<List<ShopItemUiState>>,
     onClaim: (itemId: Long) -> Unit
 ) {
@@ -80,11 +78,10 @@ fun ShopScreen(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Iterate through ShopItemUiState list
                     items(availableItemsState.data, key = { it.shopItem.id }) { itemUiState ->
                         ShopItemCard(
-                            itemUiState = itemUiState, // Pass the ShopItemUiState
-                            onClaim = { onClaim(itemUiState.shopItem.id) } // Pass the item ID to the event
+                            itemUiState = itemUiState,
+                            onClaim = { onClaim(itemUiState.shopItem.id) }
                         )
                     }
                 }
@@ -95,14 +92,11 @@ fun ShopScreen(
 
 @Composable
 fun ShopItemCard(
-    // Now receives ShopItemUiState
     itemUiState: ShopItemUiState,
     onClaim: () -> Unit,
-    // Removed purchaseCoinsState parameter
 ) {
     val alpha: Float by animateFloatAsState(targetValue = 1f)
 
-    // Get the specific purchase state for THIS item
     val purchaseState = itemUiState.purchaseUiState
 
     val isButtonEnabled = purchaseState !is UiState.Loading
@@ -111,10 +105,9 @@ fun ShopItemCard(
         is UiState.Loading -> Res.string.shop_button_processing
         is UiState.Success -> Res.string.shop_button_bought
         is UiState.Error -> Res.string.shop_button_failed
-        else -> Res.string.shop_button_buy // Includes UiState.Idle
+        else -> Res.string.shop_button_buy
     }
 
-    // Use data from the wrapped ShopItem
     val item = itemUiState.shopItem
 
     Card(
@@ -210,15 +203,15 @@ fun ShopItemCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             CustomButton(
-                onClick = onClaim, // This will trigger the ViewModel's purchaseCoins with the correct item ID
-                enabled = isButtonEnabled, // Button enabled based on THIS item's state
+                onClick = onClaim,
+                enabled = isButtonEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(stringResource(buttonTextResource)) // Text based on THIS item's state
+                Text(stringResource(buttonTextResource))
             }
         }
     }

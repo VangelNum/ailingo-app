@@ -213,5 +213,6 @@
 
     <string name="shop_item_get_coins">Вы получите:</string>
     <string name="shop_item_price">Цена:</string>
+    <string name="go_to_shop">Перейти в магазин</string>
 
 </resources>
