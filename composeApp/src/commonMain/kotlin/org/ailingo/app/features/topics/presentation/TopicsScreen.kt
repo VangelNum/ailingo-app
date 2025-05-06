@@ -297,14 +297,14 @@ fun TopicsContent(
     currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit,
     onCustomTopicCardClick: () -> Unit,
-    onGoToShopClick: () -> Unit // Add this lambda parameter
+    onGoToShopClick: () -> Unit
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val adaptiveLazyGridSize =
         if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED ||
             adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
         ) 260.dp
-        else 140.dp
+        else 190.dp
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(adaptiveLazyGridSize),
         verticalItemSpacing = 8.dp,
