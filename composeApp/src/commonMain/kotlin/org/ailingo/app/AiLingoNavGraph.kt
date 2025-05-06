@@ -64,6 +64,7 @@ import org.ailingo.app.features.favouritewords.presentation.FavouriteScreen
 import org.ailingo.app.features.favouritewords.presentation.FavouriteWordsViewModel
 import org.ailingo.app.features.leaderboard.presentation.LeaderboardScreen
 import org.ailingo.app.features.leaderboard.presentation.LeaderboardViewModel
+import org.ailingo.app.features.lectures.presentation.LectureScreen
 import org.ailingo.app.features.login.presentation.LoginEvent
 import org.ailingo.app.features.login.presentation.LoginScreen
 import org.ailingo.app.features.login.presentation.LoginViewModel
@@ -146,6 +147,7 @@ fun AiLingoNavGraph(
         AnalysisPage::class,
         DailyBonusPage::class,
         ShopPage::class,
+        LecturePage::class,
     )
 
     val isNavigationDrawerVisible = currentDestination?.let { dest ->
@@ -508,6 +510,9 @@ fun AiLingoNavGraph(
                             },
                             onNavigateToFavouriteWords = {
                                 navController.navigate(FavouriteWordsPage)
+                            },
+                            onNavigateToLecture = {
+                                navController.navigate(LecturePage)
                             }
                         )
                     }
@@ -581,6 +586,9 @@ fun AiLingoNavGraph(
                                 }
                             }
                         }
+                    }
+                    composable<LecturePage> {
+                        LectureScreen()
                     }
                 }
             }

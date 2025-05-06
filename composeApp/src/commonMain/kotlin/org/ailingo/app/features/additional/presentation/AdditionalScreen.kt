@@ -5,6 +5,7 @@ import ailingo.composeapp.generated.resources.achievements
 import ailingo.composeapp.generated.resources.daily_bonus
 import ailingo.composeapp.generated.resources.favourite_words
 import ailingo.composeapp.generated.resources.leaderboard
+import ailingo.composeapp.generated.resources.lecture
 import ailingo.composeapp.generated.resources.profile
 import ailingo.composeapp.generated.resources.profilepixel
 import ailingo.composeapp.generated.resources.shop
@@ -39,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowWidthSizeClass
+import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
+import org.ailingo.app.getPlatformName
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -51,16 +54,23 @@ fun AdditionalScreen(
     onNavigateToAchievements: () -> Unit,
     onNavigateToDailyBonus: () -> Unit,
     onNavigateToShop: () -> Unit,
-    onNavigateToFavouriteWords:()->Unit
+    onNavigateToFavouriteWords:()->Unit,
+    onNavigateToLecture: () -> Unit
 ) {
-    val itemsForCompactScreens: List<AdditionalItems> = listOf(
+    val platform = getPlatformName()
+
+    val itemsForCompactScreens: MutableList<AdditionalItems> = mutableListOf(
         AdditionalItems.Profile,
         AdditionalItems.Shop,
         AdditionalItems.Leaderboard,
         AdditionalItems.DailyBonus,
         AdditionalItems.Achievements,
-        AdditionalItems.FavouriteWords,
+        AdditionalItems.FavouriteWords
     )
+
+    if (platform == PlatformName.Android) {
+        itemsForCompactScreens.add(AdditionalItems.Lecture) // Web view supports only in Android normally
+    }
 
     val itemsForLargeScreens: List<AdditionalItems> = listOf(
         AdditionalItems.Leaderboard,
@@ -98,6 +108,7 @@ fun AdditionalScreen(
                             AdditionalItems.DailyBonus -> onNavigateToDailyBonus()
                             AdditionalItems.Shop -> onNavigateToShop()
                             AdditionalItems.FavouriteWords -> onNavigateToFavouriteWords()
+                            AdditionalItems.Lecture -> onNavigateToLecture()
                         }
                     }
                     .height(150.dp),
@@ -184,5 +195,9 @@ sealed class AdditionalItems(
     object FavouriteWords : AdditionalItems(
         titleResId = Res.string.favourite_words,
         image = Res.drawable.favourite_words
+    )
+    object Lecture : AdditionalItems(
+        titleResId = Res.string.lecture,
+        image = Res.drawable.lecture
     )
 }
