@@ -180,7 +180,7 @@
     <string name="streak_days">Серия: %1$d дней.</string>
     <string name="next_bonus_in">Следующий бонус через:</string>
     <string name="claiming">Получаем...</string>
-    <string name="claimed_for_today">Бонус уже получен. Возаращайтесь позже</string>
+    <string name="claimed_for_today">Бонус уже получен. Возвращайтесь позже</string>
     <string name="claim_bonus">Получить бонус</string>
     <string name="retry">Повторить</string>
 
@@ -192,7 +192,7 @@
     <string name="experience_reward">Награда в опыте</string>
     <string name="claimed">Получено</string>
     <string name="claim">Получить</string>
-    <string name="locked">Заблокировано</string>
+    <string name="locked">Недоступно</string>
 
     <string name="enter_custom_topic">Введите свою тему</string>
     <string name="type_topic_hint">Введите название темы</string>
@@ -200,4 +200,18 @@
     <string name="cancel">Отмена</string>
     <string name="start_your_topic">Начать свою тему</string>
     <string name="topic_locked">Тема заблокирована</string>
+
+    <string name="topic_insufficient_coins_title">Недостаточно монет</string>
+    <string name="topic_insufficient_coins_message">Вам требуется %1$d монет, чтобы начать эту тему. У вас есть %2$d монет.</string>
+    <string name="action_ok">ОК</string>
+    <string name="shop">Магазин</string>
+
+    <string name="shop_button_processing">Обработка...</string>
+    <string name="shop_button_bought">Куплено!</string>
+    <string name="shop_button_failed">Failed!</string>
+    <string name="shop_button_buy">Купить</string>
+
+    <string name="shop_item_get_coins">Вы получите:</string>
+    <string name="shop_item_price">Цена:</string>
+
 </resources>

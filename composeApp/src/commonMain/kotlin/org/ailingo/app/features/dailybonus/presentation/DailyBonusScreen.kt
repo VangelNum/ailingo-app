@@ -42,6 +42,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -62,6 +64,8 @@ import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.snackbar.SnackbarEvent
 import org.ailingo.app.features.dailybonus.data.model.DailyBonusInfo
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.math.min // Import the min function
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -73,7 +77,7 @@ fun DailyBonusScreen(
     dailyBonusInfoState: UiState<DailyBonusInfo>,
     claimDailyBonusState: UiState<DailyBonusInfo>,
     onEvent: (DailyBonusEvent) -> Unit,
-    onRefreshUserInfo:()->Unit
+    onRefreshUserInfo: () -> Unit
 ) {
     var currentRemainingTime by remember { mutableStateOf<Long?>(null) }
 
@@ -89,10 +93,18 @@ fun DailyBonusScreen(
                     }
                     if (currentRemainingTime != null && currentRemainingTime!! <= 0) {
                         currentRemainingTime = null
+                        // Fetch updated info when time runs out
                         onEvent(DailyBonusEvent.OnGetDailyBonusInfo)
                     }
                 } finally {
-                    currentRemainingTime = null
+                    // Ensure timer is reset if LaunchedEffect is cancelled
+                    // (though getting info should handle this state naturally)
+                    if (currentRemainingTime != null && currentRemainingTime!! > 0) {
+                        // Timer cancelled before finishing, keep state
+                    } else {
+                        // Timer finished or started at 0
+                        currentRemainingTime = null
+                    }
                 }
 
             } else {
@@ -106,17 +118,17 @@ fun DailyBonusScreen(
     LaunchedEffect(claimDailyBonusState) {
         when (claimDailyBonusState) {
             is UiState.Success -> {
-                onRefreshUserInfo()
+                onRefreshUserInfo() // Refresh user info to reflect coin gain
                 SnackbarController.sendEvent(SnackbarEvent(message = claimDailyBonusState.data.message))
-                onEvent(DailyBonusEvent.OnGetDailyBonusInfo)
+                onEvent(DailyBonusEvent.OnGetDailyBonusInfo) // Fetch updated daily bonus info
             }
 
             is UiState.Error -> {
                 SnackbarController.sendEvent(SnackbarEvent(message = claimDailyBonusState.message))
-                onEvent(DailyBonusEvent.OnGetDailyBonusInfo)
+                onEvent(DailyBonusEvent.OnGetDailyBonusInfo) // Fetch updated daily bonus info
             }
 
-            else -> {}
+            else -> {} // Do nothing for Loading or Idle
         }
     }
 
@@ -148,7 +160,7 @@ fun DailyBonusScreen(
                         .padding(top = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(
-                        24.dp
+                        8.dp
                     )
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -169,11 +181,9 @@ fun DailyBonusScreen(
                         }
                     }
 
-
                     ElevatedCard(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
+                            .fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
                     ) {
@@ -185,7 +195,7 @@ fun DailyBonusScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             Text(
-                                text = "Your Progress Path",
+                                text = "TAKE YOUR COINS", // Consider making this a resource string
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
@@ -201,21 +211,22 @@ fun DailyBonusScreen(
                                 ),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                val startDay = maxOf(1, dailyBonusInfo.streak - DISPLAY_STREAK_CIRCLES / 2)
-                                val endDay = startDay + DISPLAY_STREAK_CIRCLES -1
-
+                                // Calculate the range of days to display
+                                // Start from 1 or streak - DISPLAY_STREAK_CIRCLES / 2, ensuring it's at least 1
+                                val startDay = maxOf(1, dailyBonusInfo.streak - DISPLAY_STREAK_CIRCLES / 2 + 1) // Start slightly before the streak, centered around the *next* potential claim
+                                val endDay = startDay + DISPLAY_STREAK_CIRCLES - 1
 
                                 for (day in startDay..endDay) {
                                     DailyBonusCircle(
                                         day = day,
                                         streak = dailyBonusInfo.streak,
+                                        // A day is available to claim if it's the *next* day in the streak
                                         isAvailableToClaim = dailyBonusInfo.isAvailable && day == dailyBonusInfo.streak + 1
                                     )
                                 }
                             }
                         }
                     }
-
 
                     Box(
                         modifier = Modifier
@@ -246,15 +257,11 @@ fun DailyBonusScreen(
                                 text = stringResource(Res.string.claimed_for_today),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
                             )
-                        } else {
-                            Spacer(modifier = Modifier.height(48.dp))
                         }
                     }
-
-
-                    Spacer(modifier = Modifier.height(8.dp))
 
                     CustomButton(
                         onClick = {
@@ -262,10 +269,8 @@ fun DailyBonusScreen(
                                 onEvent(DailyBonusEvent.OnClaimDailyBonus)
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .height(56.dp),
-                        enabled = dailyBonusInfo.isAvailable && !claiming
+                        enabled = dailyBonusInfo.isAvailable && !claiming,
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         if (claiming) {
                             Text(stringResource(Res.string.claiming), modifier = Modifier.padding(end = 8.dp))
@@ -281,8 +286,6 @@ fun DailyBonusScreen(
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -297,35 +300,39 @@ fun DailyBonusCircle(
 ) {
     val isClaimed = day <= streak
 
+    // Calculate coins for this day
+    val coinsForDay = min(day * 5, 50)
+
     val backgroundColor by animateColorAsState(
         targetValue = when {
             isClaimed -> MaterialTheme.colorScheme.primary
             isAvailableToClaim -> MaterialTheme.colorScheme.primaryContainer
-            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) // Color for future unclaimed days
         }, label = "circleBackgroundColor"
     )
 
     val borderColor by animateColorAsState(
         targetValue = when {
-            isClaimed -> MaterialTheme.colorScheme.primary
-            isAvailableToClaim -> MaterialTheme.colorScheme.primary
-            else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            isClaimed -> MaterialTheme.colorScheme.primary // Claimed day uses primary border (or maybe transparent/none?)
+            isAvailableToClaim -> MaterialTheme.colorScheme.primary // Available day uses primary border
+            else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.5f) // Future unclaimed days use outline
         }, label = "circleBorderColor"
     )
 
 
     val textColor by animateColorAsState(
         targetValue = when {
-            isClaimed -> MaterialTheme.colorScheme.onPrimary
-            isAvailableToClaim -> MaterialTheme.colorScheme.onPrimaryContainer
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
+            isClaimed -> MaterialTheme.colorScheme.onPrimary // Claimed day text color (though icon is shown)
+            isAvailableToClaim -> MaterialTheme.colorScheme.onPrimaryContainer // Available day text color
+            else -> MaterialTheme.colorScheme.onSurfaceVariant // Future unclaimed days text color
         }, label = "circleTextColor"
     )
 
+    // Pulsing animation only for the available day
     val infiniteTransition = rememberInfiniteTransition(label = "borderPulse")
     val animatedBorderStrokeWidth by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 2f,
+        initialValue = 1.dp.value, // Start from 1dp width
+        targetValue = 2.dp.value,   // Animate to 2dp width
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 1000
@@ -336,14 +343,13 @@ fun DailyBonusCircle(
         ), label = "animatedBorderWidth"
     )
 
-
     Box(
         modifier = Modifier
             .size(52.dp)
             .clip(CircleShape)
             .background(backgroundColor)
             .border(
-                width = if (isAvailableToClaim) animatedBorderStrokeWidth.dp else 1.dp,
+                width = if (isAvailableToClaim) animatedBorderStrokeWidth.dp else 1.dp, // Use animated width if available
                 color = borderColor,
                 shape = CircleShape
             ),
@@ -352,17 +358,22 @@ fun DailyBonusCircle(
         if (isClaimed) {
             Icon(
                 imageVector = Icons.Filled.Check,
-                contentDescription = "Day $day claimed",
+                contentDescription = "Day $day claimed", // Or "Bonus for day $day claimed"
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(28.dp)
             )
         } else {
-            Text(
-                text = day.toString(),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
+            // Show the coin amount for unclaimed days
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "+$coinsForDay", // Show coins with a plus sign
+                    fontSize = 16.sp, // Adjusted font size slightly to fit "+50"
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+                // Optional: add a small text "coins" or an icon if desired
+                // Text("coins", fontSize = 8.sp, color = textColor.copy(alpha = 0.8f))
+            }
         }
     }
 }
@@ -378,7 +389,86 @@ fun formatRemainingTime(totalSeconds: Long): String {
 
     return buildString {
         if (hours > 0) append("${hours}h ")
+        // Only show minutes if there are hours or if minutes > 0
         if (minutes > 0 || hours > 0) append("${minutes}m ")
-        append("${seconds}s")
+        // Always show seconds if totalSeconds > 0, unless hours/minutes cover it sufficiently (optional refinement)
+        // For simplicity, show seconds if totalSeconds < 1 hour
+        if (totalSeconds < 3600 || (totalSeconds >= 3600 && seconds > 0)) {
+            append("${seconds}s")
+        }
     }.trim()
+}
+
+@Preview
+@Composable
+fun DailyBonusScreenPreview() {
+    CompositionLocalProvider() { // Assuming CompositionLocalProvider provides necessary context like MaterialTheme
+        DailyBonusScreen(
+            dailyBonusInfoState = UiState.Success(
+                // Example data: streak of 5, next bonus is available
+                DailyBonusInfo(
+                    streak = 5,
+                    coinsRewarded = 10, // This field in the model seems to be the *last* amount received, not the next.
+                    message = "Bonus Claimed!",
+                    totalRemainingTimeSeconds = 0, // 0 means available or already claimed
+                    isAvailable = true // Set to true to show available state
+                )
+            ),
+            claimDailyBonusState = UiState.Idle(),
+            onEvent = {},
+            onRefreshUserInfo = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DailyBonusScreenClaimedPreview() {
+    CompositionLocalProvider() {
+        DailyBonusScreen(
+            dailyBonusInfoState = UiState.Success(
+                // Example data: streak of 6, claimed for today, next in 23 hours
+                DailyBonusInfo(
+                    streak = 6,
+                    coinsRewarded = 30,
+                    message = "Bonus claimed today",
+                    totalRemainingTimeSeconds = 23 * 3600 + 59 * 60 + 59, // ~24 hours
+                    isAvailable = false // Set to false to show claimed/timer state
+                )
+            ),
+            claimDailyBonusState = UiState.Idle(),
+            onEvent = {},
+            onRefreshUserInfo = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DailyBonusScreenLoadingPreview() {
+    CompositionLocalProvider() {
+        DailyBonusScreen(
+            dailyBonusInfoState = UiState.Loading(),
+            claimDailyBonusState = UiState.Idle(),
+            onEvent = {},
+            onRefreshUserInfo = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DailyBonusCirclePreview() {
+    Column {
+        // Claimed day 3 (shows checkmark)
+        DailyBonusCircle(day = 3, streak = 5, isAvailableToClaim = false)
+        // Day 6 (not claimed, not available, shows coins for day 6 = 30)
+        DailyBonusCircle(day = 6, streak = 5, isAvailableToClaim = false)
+        // Day 6 (not claimed, IS available, shows coins for day 6 = 30, pulses)
+        DailyBonusCircle(day = 6, streak = 5, isAvailableToClaim = true)
+        // Day 10 (not claimed, not available, shows coins for day 10 = 50)
+        DailyBonusCircle(day = 10, streak = 5, isAvailableToClaim = false)
+        // Day 11 (not claimed, not available, shows coins for day 11 = 50)
+        DailyBonusCircle(day = 11, streak = 5, isAvailableToClaim = false)
+    }
 }

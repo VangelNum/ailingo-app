@@ -11,6 +11,7 @@ import org.ailingo.app.features.leaderboard.presentation.LeaderboardViewModel
 import org.ailingo.app.features.login.presentation.LoginViewModel
 import org.ailingo.app.features.profileupdate.presentation.ProfileUpdateViewModel
 import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
+import org.ailingo.app.features.shop.presentation.ShopViewModel
 import org.ailingo.app.features.topics.presentation.TopicViewModel
 import org.ailingo.app.features.updateavatar.presentation.UpdateAvatarViewModel
 import org.koin.core.module.dsl.viewModel
@@ -38,4 +39,5 @@ val viewModelModule = module {
     viewModel { AnalysisViewModel(get()) }
     viewModel { DailyBonusViewModel(get()) }
     viewModel { AchievementsViewModel(get()) }
+    viewModel { ShopViewModel(get()) }
 }

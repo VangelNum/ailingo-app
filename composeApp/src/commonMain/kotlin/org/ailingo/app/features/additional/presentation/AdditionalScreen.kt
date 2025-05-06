@@ -3,9 +3,11 @@ package org.ailingo.app.features.additional.presentation
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.achievements
 import ailingo.composeapp.generated.resources.daily_bonus
+import ailingo.composeapp.generated.resources.favourite_words
 import ailingo.composeapp.generated.resources.leaderboard
 import ailingo.composeapp.generated.resources.profile
 import ailingo.composeapp.generated.resources.profilepixel
+import ailingo.composeapp.generated.resources.shop
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +38,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowWidthSizeClass
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -46,13 +50,32 @@ fun AdditionalScreen(
     onNavigateToLeaderboard: () -> Unit,
     onNavigateToAchievements: () -> Unit,
     onNavigateToDailyBonus: () -> Unit,
+    onNavigateToShop: () -> Unit,
+    onNavigateToFavouriteWords:()->Unit
 ) {
-    val items: List<AdditionalItems> = listOf(
+    val itemsForCompactScreens: List<AdditionalItems> = listOf(
         AdditionalItems.Profile,
+        AdditionalItems.Shop,
         AdditionalItems.Leaderboard,
         AdditionalItems.DailyBonus,
         AdditionalItems.Achievements,
+        AdditionalItems.FavouriteWords,
     )
+
+    val itemsForLargeScreens: List<AdditionalItems> = listOf(
+        AdditionalItems.Leaderboard,
+        AdditionalItems.DailyBonus,
+        AdditionalItems.Achievements,
+        AdditionalItems.FavouriteWords,
+    )
+
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+
+    val selectedItems = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED) {
+        itemsForLargeScreens
+    } else {
+        itemsForCompactScreens
+    }
 
     val gradient = Brush.verticalGradient(
         colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f), Color.Transparent)
@@ -63,7 +86,7 @@ fun AdditionalScreen(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(items) { item ->
+        items(selectedItems) { item ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -73,6 +96,8 @@ fun AdditionalScreen(
                             AdditionalItems.Leaderboard -> onNavigateToLeaderboard()
                             AdditionalItems.Achievements -> onNavigateToAchievements()
                             AdditionalItems.DailyBonus -> onNavigateToDailyBonus()
+                            AdditionalItems.Shop -> onNavigateToShop()
+                            AdditionalItems.FavouriteWords -> onNavigateToFavouriteWords()
                         }
                     }
                     .height(150.dp),
@@ -136,6 +161,10 @@ sealed class AdditionalItems(
         titleResId = Res.string.profile,
         image = Res.drawable.profilepixel
     )
+    object Shop : AdditionalItems(
+        titleResId = Res.string.shop,
+        image = Res.drawable.shop
+    )
 
     object DailyBonus : AdditionalItems(
         titleResId = Res.string.daily_bonus,
@@ -150,5 +179,10 @@ sealed class AdditionalItems(
     object Achievements : AdditionalItems(
         titleResId = Res.string.achievements,
         image = Res.drawable.achievements
+    )
+
+    object FavouriteWords : AdditionalItems(
+        titleResId = Res.string.favourite_words,
+        image = Res.drawable.favourite_words
     )
 }

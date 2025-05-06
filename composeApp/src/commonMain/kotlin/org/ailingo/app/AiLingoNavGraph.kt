@@ -75,6 +75,9 @@ import org.ailingo.app.features.registration.presentation.RegisterUserViewModel
 import org.ailingo.app.features.registration.presentation.RegistrationEvent
 import org.ailingo.app.features.registration.presentation.RegistrationScreen
 import org.ailingo.app.features.registration.presentation.email_verification.VerifyEmailScreen
+import org.ailingo.app.features.shop.presentation.ShopEvent
+import org.ailingo.app.features.shop.presentation.ShopScreen
+import org.ailingo.app.features.shop.presentation.ShopViewModel
 import org.ailingo.app.features.topics.presentation.DEFAULT_IMAGE_URL
 import org.ailingo.app.features.topics.presentation.TopicViewModel
 import org.ailingo.app.features.topics.presentation.TopicsScreen
@@ -142,6 +145,7 @@ fun AiLingoNavGraph(
         AchievementsPage::class,
         AnalysisPage::class,
         DailyBonusPage::class,
+        ShopPage::class,
     )
 
     val isNavigationDrawerVisible = currentDestination?.let { dest ->
@@ -258,6 +262,7 @@ fun AiLingoNavGraph(
                         TopicsScreen(
                             topicsUiState = topicsUiState,
                             currentUserXp = currentUserXp,
+                            currentUserCoins = if (loginState is UiState.Success) loginState.data.coins else -1,
                             onTopicClick = { topicName, topicImage ->
                                 navController.navigate(
                                     ChatPage(
@@ -494,6 +499,12 @@ fun AiLingoNavGraph(
                             },
                             onNavigateToDailyBonus = {
                                 navController.navigate(DailyBonusPage)
+                            },
+                            onNavigateToShop = {
+                                navController.navigate(ShopPage)
+                            },
+                            onNavigateToFavouriteWords = {
+                                navController.navigate(FavouriteWordsPage)
                             }
                         )
                     }
@@ -545,6 +556,28 @@ fun AiLingoNavGraph(
                         }, onRefreshUserInfo = {
                             loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
                         })
+                    }
+                    composable<ShopPage> {
+                        val shopViewModel = koinViewModel<ShopViewModel>()
+                        val availableItemsState = shopViewModel.availableItemsState.collectAsStateWithLifecycle().value
+
+                        ShopScreen(
+                            availableItemsState = availableItemsState,
+                            onClaim = { itemId ->
+                                shopViewModel.onEvent(ShopEvent.OnPurchaseCoins(itemId))
+                            }
+                        )
+
+                        LaunchedEffect(availableItemsState) {
+                            if (availableItemsState is UiState.Success) {
+                                val anyItemPurchasedSuccessfully = availableItemsState.data.any {
+                                    it.purchaseUiState is UiState.Success
+                                }
+                                if (anyItemPurchasedSuccessfully) {
+                                    loginViewModel.onEvent(LoginEvent.OnRefreshUserInfo)
+                                }
+                            }
+                        }
                     }
                 }
             }

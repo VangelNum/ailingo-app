@@ -3,6 +3,7 @@ package org.ailingo.app.features.topics.presentation
 import ailingo.composeapp.generated.resources.Res
 import ailingo.composeapp.generated.resources.action_cancel
 import ailingo.composeapp.generated.resources.action_confirm
+import ailingo.composeapp.generated.resources.action_ok
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.defaultProfilePhoto
 import ailingo.composeapp.generated.resources.gain
@@ -12,6 +13,8 @@ import ailingo.composeapp.generated.resources.price
 import ailingo.composeapp.generated.resources.req
 import ailingo.composeapp.generated.resources.topic_confirmation_message
 import ailingo.composeapp.generated.resources.topic_confirmation_title
+import ailingo.composeapp.generated.resources.topic_insufficient_coins_message
+import ailingo.composeapp.generated.resources.topic_insufficient_coins_title
 import ailingo.composeapp.generated.resources.topic_required_xp
 import ailingo.composeapp.generated.resources.topic_xp_required_message
 import ailingo.composeapp.generated.resources.topic_xp_required_title
@@ -72,6 +75,7 @@ const val DEFAULT_IMAGE_URL = "https://i.ibb.co/YB1hWJWb/default-Profile-Photo.p
 fun TopicItem(
     topic: Topic,
     currentUserXp: Int,
+    currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit
 ) {
     val gradient = Brush.verticalGradient(
@@ -80,11 +84,33 @@ fun TopicItem(
 
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var showXpRequirementDialog by remember { mutableStateOf(false) }
+    var showInsufficientCoinsDialog by remember { mutableStateOf(false) }
 
     val requiredXp = topic.level * 100
-    val canAccessTopic = currentUserXp >= requiredXp || topic.level == 0
+    val canAccessTopicByXp = currentUserXp >= requiredXp || topic.level == 0
+    val canAffordTopic = currentUserCoins >= topic.price
 
-    // --- Dialogs remain the same ---
+    if (showInsufficientCoinsDialog) {
+        AlertDialog(
+            onDismissRequest = { showInsufficientCoinsDialog = false },
+            title = { Text(stringResource(Res.string.topic_insufficient_coins_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        Res.string.topic_insufficient_coins_message,
+                        topic.price,
+                        currentUserCoins
+                    )
+                )
+            },
+            confirmButton = {
+                Button(onClick = { showInsufficientCoinsDialog = false }) {
+                    Text(stringResource(Res.string.action_ok))
+                }
+            }
+        )
+    }
+
     if (showConfirmationDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmationDialog = false },
@@ -139,25 +165,27 @@ fun TopicItem(
         colors = CardDefaults.cardColors(
             containerColor =
                 when {
-                    topic.isCompleted -> MaterialTheme.colorScheme.primaryContainer // Completed topics have primaryContainer background
-                    !canAccessTopic -> MaterialTheme.colorScheme.surfaceVariant // Locked topics have surfaceVariant background
-                    else -> MaterialTheme.colorScheme.primaryContainer // Unlocked topics have primaryContainer background
+                    topic.isCompleted -> MaterialTheme.colorScheme.primaryContainer
+                    !canAccessTopicByXp -> MaterialTheme.colorScheme.surfaceVariant
+                    !canAffordTopic -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.primaryContainer
                 }
         ),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.clickable {
             when {
-                !canAccessTopic -> {
+                !canAccessTopicByXp -> {
                     showXpRequirementDialog = true
                 }
-                // If completed or unlocked/not completed, show confirmation dialog
-                else -> { // This covers both topic.isCompleted and (canAccessTopic && !topic.isCompleted)
+                !canAffordTopic -> {
+                    showInsufficientCoinsDialog = true
+                }
+                else -> {
                     showConfirmationDialog = true
                 }
             }
         }
     ) {
-        // --- Image and Title Box (No changes needed here) ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -169,7 +197,7 @@ fun TopicItem(
                 model = topic.imageUrl?: DEFAULT_IMAGE_URL,
                 contentScale = ContentScale.Crop,
                 contentDescription = topic.name,
-                alpha = if (!canAccessTopic && !topic.isCompleted) 0.5f else 1f, // Image alpha only affected by lock status
+                alpha = if (!canAccessTopicByXp || !canAffordTopic) 0.5f else 1f,
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithCache {
@@ -226,14 +254,13 @@ fun TopicItem(
                     .padding(vertical = 8.dp, horizontal = 4.dp)
             )
 
-            // Lock icon only for locked topics
-            if (!canAccessTopic && !topic.isCompleted) {
+            if (!canAccessTopicByXp || !canAffordTopic) {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = stringResource(
-                        Res.string.topic_required_xp,
-                        requiredXp
-                    ),
+                    contentDescription =
+                        if (!canAccessTopicByXp) stringResource(Res.string.topic_required_xp, requiredXp)
+                        else if (!canAffordTopic) stringResource(Res.string.topic_insufficient_coins_title)
+                        else null,
                     tint = Color.White.copy(alpha = 0.9f),
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -241,10 +268,7 @@ fun TopicItem(
                 )
             }
         }
-        // --- End Image and Title Box ---
 
-
-        // --- Status/Price/Gain Box (MODIFIED) ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -252,157 +276,17 @@ fun TopicItem(
                 .padding(8.dp)
         ) {
             when {
-                // State 1: Completed (MODIFIED)
                 topic.isCompleted -> {
-                    // Display Price and Gain (always 0)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            // Use primary background for the info row in completed state
                             .background(MaterialTheme.colorScheme.primary)
                             .padding(horizontal = 12.dp, vertical = 8.dp)
                             .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.SpaceEvenly, // Distribute items
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Price (Coins)
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.price),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) // Muted color on primary
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.price.toString(), // Show the original price
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary // Text color on primary background
-                                )
-                                Image(
-                                    painter = painterResource(Res.drawable.coins),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        }
-
-                        // Separator
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f)) // Separator color on primary background
-                                .padding(vertical = 4.dp)
-                        )
-
-                        // Gained XP (MODIFIED: Always show 0)
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.gain),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) // Muted color on primary
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    "0", // **Always display 0 for completed topics**
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary // Text color on primary background
-                                )
-                                Image(
-                                    painter = painterResource(Res.drawable.icon_experience),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // State 2: Locked (Insufficient XP) - No changes needed here
-                !canAccessTopic -> {
-                    // Show required XP and gained XP
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.errorContainer) // Background for locked status (error indicates blocked access)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Required XP
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.req), // Short for "Required"
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f) // Muted color
-                            )
-                            Text(
-                                stringResource(
-                                    Res.string.topic_required_xp,
-                                    requiredXp
-                                ),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
-                        // Separator
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f))
-                                .padding(vertical = 4.dp)
-                        )
-
-                        // Gained XP
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.gain), // Short for "Gain"
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.topicXp.toString(), // Show the potential gain
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Image(painter = painterResource(Res.drawable.icon_experience), contentDescription = null, modifier = Modifier.size(20.dp))
-                            }
-                        }
-                    }
-                }
-
-                // State 3: Unlocked & Not Completed - No changes needed here
-                else -> { // This means canAccessTopic is true AND !topic.isCompleted
-                    // Show Price and Gained XP
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary) // Background for purchasable/startable status
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Price (Coins)
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 stringResource(Res.string.price),
@@ -427,7 +311,6 @@ fun TopicItem(
                             }
                         }
 
-                        // Separator
                         Box(
                             modifier = Modifier
                                 .width(1.dp)
@@ -447,7 +330,198 @@ fun TopicItem(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    topic.topicXp.toString(), // Show the potential gain
+                                    "0",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                                Image(
+                                    painter = painterResource(Res.drawable.icon_experience),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                !canAccessTopicByXp -> {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.req),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                stringResource(
+                                    Res.string.topic_required_xp,
+                                    requiredXp
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f))
+                                .padding(vertical = 4.dp)
+                        )
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.gain),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    topic.topicXp.toString(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Image(painter = painterResource(Res.drawable.icon_experience), contentDescription = null, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                    }
+                }
+
+                !canAffordTopic -> {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.req),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    topic.price.toString(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Image(
+                                    painter = painterResource(Res.drawable.coins),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f))
+                                .padding(vertical = 4.dp)
+                        )
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.gain),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    topic.topicXp.toString(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Image(painter = painterResource(Res.drawable.icon_experience), contentDescription = null, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                    }
+                }
+
+                else -> {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.price),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    topic.price.toString(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                                Image(
+                                    painter = painterResource(Res.drawable.coins),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
+                                .padding(vertical = 4.dp)
+                        )
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                stringResource(Res.string.gain),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    topic.topicXp.toString(),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary
@@ -459,6 +533,5 @@ fun TopicItem(
                 }
             }
         }
-        // --- End Status/Price/Gain Box ---
     }
 }

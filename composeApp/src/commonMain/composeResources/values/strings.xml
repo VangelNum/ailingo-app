@@ -203,4 +203,17 @@
     <string name="cancel">Cancel</string>
     <string name="start_your_topic">Start your topic</string>
     <string name="topic_locked">Topic locked</string>
+
+    <string name="topic_insufficient_coins_title">Insufficient Coins</string>
+    <string name="topic_insufficient_coins_message">You need %1$d coins to start this topic. You currently have %2$d coins.</string>
+    <string name="action_ok">OK</string>
+    <string name="shop">Shop</string>
+
+    <string name="shop_button_processing">Processing...</string>
+    <string name="shop_button_bought">Bought!</string>
+    <string name="shop_button_failed">Failed!</string>
+    <string name="shop_button_buy">Buy</string>
+
+    <string name="shop_item_get_coins">You Get:</string>
+    <string name="shop_item_price">Price:</string>
 </resources>

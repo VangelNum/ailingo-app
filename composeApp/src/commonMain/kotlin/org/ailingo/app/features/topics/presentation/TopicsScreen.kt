@@ -68,10 +68,12 @@ import org.ailingo.app.features.topics.data.model.Topic
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+
 @Composable
 fun TopicsScreen(
     topicsUiState: UiState<List<Topic>>,
     currentUserXp: Int,
+    currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit,
     onClickCustomTopic: (String) -> Unit
 ) {
@@ -99,6 +101,7 @@ fun TopicsScreen(
                 TopicsContent(
                     topics = topicsUiState.data,
                     currentUserXp = currentUserXp,
+                    currentUserCoins = currentUserCoins,
                     onTopicClick = onTopicClick,
                     onCustomTopicCardClick = { showCustomTopicDialog = true }
                 )
@@ -224,7 +227,7 @@ fun CustomTopicCard(
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                20.toString(),
+                                200.toString(),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
@@ -278,6 +281,7 @@ fun CustomTopicCard(
 fun TopicsContent(
     topics: List<Topic>,
     currentUserXp: Int,
+    currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit,
     onCustomTopicCardClick: () -> Unit
 ) {
@@ -302,7 +306,12 @@ fun TopicsContent(
             )
         }
         items(topics) { topic ->
-            TopicItem(topic, currentUserXp, onTopicClick)
+            TopicItem(
+                topic,
+                currentUserXp,
+                currentUserCoins,
+                onTopicClick
+            )
         }
     }
 }

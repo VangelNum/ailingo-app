@@ -75,6 +75,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -274,8 +275,8 @@ fun AnalysisTypeCard(type: AnalysisType, onClick: () -> Unit) {
 
     val gradient = Brush.linearGradient(
         colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)),
-        start = androidx.compose.ui.geometry.Offset(0f, Float.POSITIVE_INFINITY),
-        end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, 0f)
+        start = Offset(0f, Float.POSITIVE_INFINITY),
+        end = Offset(Float.POSITIVE_INFINITY, 0f)
     )
 
     var isPressed by remember { mutableStateOf(false) }

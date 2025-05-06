@@ -30,6 +30,8 @@ import org.ailingo.app.features.registration.data.repository.RegisterRepositoryI
 import org.ailingo.app.features.registration.data.repository.VerifyEmailRepositoryImpl
 import org.ailingo.app.features.registration.domain.repository.RegisterRepository
 import org.ailingo.app.features.registration.domain.repository.VerifyEmailRepository
+import org.ailingo.app.features.shop.data.repository.ShopRepositoryImpl
+import org.ailingo.app.features.shop.domain.repository.ShopRepository
 import org.ailingo.app.features.topics.data.repository.TopicRepositoryImpl
 import org.ailingo.app.features.topics.domain.repository.TopicRepository
 import org.ailingo.app.features.translate.data.repository.TranslateRepositoryImpl
@@ -97,5 +99,8 @@ val repositoryModule = module {
     }
     single<AchievementsRepository> {
         AchievementsRepositoryImpl(get(), get())
+    }
+    single<ShopRepository> {
+        ShopRepositoryImpl(get(), get())
     }
 }
