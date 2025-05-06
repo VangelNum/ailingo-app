@@ -175,7 +175,7 @@
 
     <string name="topic_xp_required_title">Topic Locked</string>
     <string name="topic_xp_required_message">You need %1$d XP to unlock this topic. You currently have %2$d XP.</string>
-    <string name="topic_required_xp">%1$d XP</string>
+    <string name="topic_required_xp">%1$d</string>
 
     <string name="daily_bonus">Daily Bonus</string>
 

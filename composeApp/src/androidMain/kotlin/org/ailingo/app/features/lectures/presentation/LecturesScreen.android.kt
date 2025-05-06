@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -24,11 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+
 
 data class GrammarLecture(
     val title: String,
@@ -73,13 +76,13 @@ actual fun LectureScreen() {
                 url = "https://lhlib.ru/tipichnye-oshibki-v-anglijskom-urovnya-pre-in/",
                 color = Color(0xFFB2EBF2) // Light Cyan
             ),
-             GrammarLecture(
-                 title = "Past Simple Tense",
-                 summary = "Understand the rules and usage of the Past Simple tense in English.",
-                 source = "Source: skysmart.ru",
-                 url = "https://skysmart.ru/articles/english/past-simple-tense",
-                 color = Color(0xFFF8BBD0) // Light Pink
-             )
+            GrammarLecture(
+                title = "Past Simple Tense",
+                summary = "Understand the rules and usage of the Past Simple tense in English.",
+                source = "Source: skysmart.ru",
+                url = "https://skysmart.ru/articles/english/past-simple-tense",
+                color = Color(0xFFF8BBD0) // Light Pink
+            )
         )
     }
 
@@ -97,25 +100,38 @@ actual fun LectureScreen() {
             }
         }
     } else {
-        BackHandler(enabled = selectedUrl != null) {
-            selectedUrl = null
-        }
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                WebView(context).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    webViewClient = WebViewClient()
-                    settings.javaScriptEnabled = true
+        //BackHandler(enabled = selectedUrl != null) {
+        //    selectedUrl = null
+        //}
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    WebView(context).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        webViewClient = WebViewClient()
+                        settings.javaScriptEnabled = true
+                    }
+                },
+                update = { webView ->
+                    selectedUrl?.let { url -> // Use let to safely access selectedUrl
+                        webView.loadUrl(url)
+                    }
                 }
-            },
-            update = { webView ->
-                webView.loadUrl(selectedUrl!!)
+            )
+
+            Button(
+                onClick = { selectedUrl = null },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp)
+            ) {
+                Text("Close")
             }
-        )
+        }
     }
 }
 

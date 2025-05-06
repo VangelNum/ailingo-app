@@ -78,7 +78,7 @@ fun TopicItem(
     currentUserXp: Int,
     currentUserCoins: Int,
     onTopicClick: (String, String) -> Unit,
-    onGoToShopClick: () -> Unit // Add this lambda parameter
+    onGoToShopClick: () -> Unit
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f), Color.Transparent)
@@ -90,109 +90,50 @@ fun TopicItem(
 
     val requiredXp = topic.level * 100
     val canAccessTopicByXp = currentUserXp >= requiredXp || topic.level == 0
-    val canAffordTopic = currentUserCoins >= topic.price
+    val enoughtMoneyForStartTopic = currentUserCoins >= topic.price
 
-    if (showInsufficientCoinsDialog) {
-        AlertDialog(
-            onDismissRequest = { showInsufficientCoinsDialog = false },
-            title = { Text(stringResource(Res.string.topic_insufficient_coins_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        Res.string.topic_insufficient_coins_message,
-                        topic.price,
-                        currentUserCoins
-                    )
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    showInsufficientCoinsDialog = false
-                    onGoToShopClick()
-                }) {
-                    Text(stringResource(Res.string.go_to_shop))
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showInsufficientCoinsDialog = false }) {
-                    Text(stringResource(Res.string.action_ok))
-                }
-            }
-        )
-    }
+    // Dialogs
+    ConfirmationDialog(
+        showDialog = showConfirmationDialog,
+        topicName = topic.name,
+        topicPrice = topic.price.toString(),
+        onConfirm = {
+            onTopicClick(topic.name, topic.imageUrl ?: DEFAULT_IMAGE_URL)
+            showConfirmationDialog = false
+        },
+        onDismiss = { showConfirmationDialog = false }
+    )
 
-    if (showConfirmationDialog) {
-        AlertDialog(
-            onDismissRequest = { showConfirmationDialog = false },
-            title = { Text(stringResource(Res.string.topic_confirmation_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        Res.string.topic_confirmation_message,
-                        topic.name,
-                        topic.price.toString()
-                    )
-                )
-            },
-            confirmButton = {
-                Button(onClick = {
-                    onTopicClick(topic.name, topic.imageUrl?: DEFAULT_IMAGE_URL)
-                    showConfirmationDialog = false
-                }) {
-                    Text(stringResource(Res.string.action_confirm))
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showConfirmationDialog = false }) {
-                    Text(stringResource(Res.string.action_cancel))
-                }
-            }
-        )
-    }
+    RequirementDialog(
+        showDialog = showXpRequirementDialog,
+        title = stringResource(Res.string.topic_xp_required_title),
+        message = stringResource(Res.string.topic_xp_required_message, requiredXp, currentUserXp),
+        onDismiss = { showXpRequirementDialog = false }
+    )
 
-    if (showXpRequirementDialog) {
-        AlertDialog(
-            onDismissRequest = { showXpRequirementDialog = false },
-            title = { Text(stringResource(Res.string.topic_xp_required_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        Res.string.topic_xp_required_message,
-                        requiredXp,
-                        currentUserXp
-                    )
-                )
-            },
-            confirmButton = {
-                Button(onClick = { showXpRequirementDialog = false }) {
-                    Text(stringResource(Res.string.action_cancel))
-                }
-            }
-        )
-    }
+    InsufficientCoinsDialog(
+        showDialog = showInsufficientCoinsDialog,
+        topicPrice = topic.price,
+        currentUserCoins = currentUserCoins,
+        onGoToShopClick = onGoToShopClick,
+        onDismiss = { showInsufficientCoinsDialog = false }
+    )
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor =
-                when {
-                    topic.isCompleted -> MaterialTheme.colorScheme.primaryContainer
-                    !canAccessTopicByXp -> MaterialTheme.colorScheme.surfaceVariant
-                    !canAffordTopic -> MaterialTheme.colorScheme.surfaceVariant
-                    else -> MaterialTheme.colorScheme.primaryContainer
-                }
+            containerColor = when {
+                topic.isCompleted -> MaterialTheme.colorScheme.primaryContainer
+                !canAccessTopicByXp -> MaterialTheme.colorScheme.surfaceVariant
+                !enoughtMoneyForStartTopic -> MaterialTheme.colorScheme.surfaceVariant
+                else -> MaterialTheme.colorScheme.primaryContainer
+            }
         ),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.clickable {
             when {
-                !canAccessTopicByXp -> {
-                    showXpRequirementDialog = true
-                }
-                !canAffordTopic -> {
-                    showInsufficientCoinsDialog = true
-                }
-                else -> {
-                    showConfirmationDialog = true
-                }
+                !canAccessTopicByXp -> showXpRequirementDialog = true
+                !enoughtMoneyForStartTopic -> showInsufficientCoinsDialog = true
+                else -> showConfirmationDialog = true
             }
         }
     ) {
@@ -204,10 +145,10 @@ fun TopicItem(
                 .clip(RoundedCornerShape(16.dp))
         ) {
             SubcomposeAsyncImage(
-                model = topic.imageUrl?: DEFAULT_IMAGE_URL,
+                model = topic.imageUrl ?: DEFAULT_IMAGE_URL,
                 contentScale = ContentScale.Crop,
                 contentDescription = topic.name,
-                alpha = if (!canAccessTopicByXp || !canAffordTopic) 0.5f else 1f,
+                alpha = if (!canAccessTopicByXp || !enoughtMoneyForStartTopic) 0.5f else 1f,
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithCache {
@@ -225,23 +166,8 @@ fun TopicItem(
                     }
                 },
                 error = {
-                    if (LocalInspectionMode.current) {
-                        Image(
-                            painter = painterResource(Res.drawable.defaultProfilePhoto),
-                            contentDescription = null
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                stringResource(Res.string.loading_error),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
+                    ErrorImage()
+                }
             )
 
             Text(
@@ -264,13 +190,14 @@ fun TopicItem(
                     .padding(vertical = 8.dp, horizontal = 4.dp)
             )
 
-            if (!canAccessTopicByXp || !canAffordTopic) {
+            if (!canAccessTopicByXp || !enoughtMoneyForStartTopic) {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription =
-                        if (!canAccessTopicByXp) stringResource(Res.string.topic_required_xp, requiredXp)
-                        else if (!canAffordTopic) stringResource(Res.string.topic_insufficient_coins_title)
-                        else null,
+                    contentDescription = when {
+                        !canAccessTopicByXp -> stringResource(Res.string.topic_required_xp, requiredXp)
+                        !enoughtMoneyForStartTopic -> stringResource(Res.string.topic_insufficient_coins_title)
+                        else -> null
+                    },
                     tint = Color.White.copy(alpha = 0.9f),
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -285,263 +212,244 @@ fun TopicItem(
                 .wrapContentHeight()
                 .padding(8.dp)
         ) {
-            when {
-                topic.isCompleted -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.price),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.price.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Image(
-                                    painter = painterResource(Res.drawable.coins),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        }
+            val backgroundColor = when {
+                topic.isCompleted -> MaterialTheme.colorScheme.primary
+                !canAccessTopicByXp || !enoughtMoneyForStartTopic -> MaterialTheme.colorScheme.errorContainer
+                else -> MaterialTheme.colorScheme.primary
+            }
 
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
-                                .padding(vertical = 4.dp)
-                        )
+            val contentColorAlpha = when {
+                topic.isCompleted -> 0.7f
+                !canAccessTopicByXp || !enoughtMoneyForStartTopic -> 0.7f
+                else -> 0.7f
+            }
 
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.gain),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    "0",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Image(
-                                    painter = painterResource(Res.drawable.icon_experience),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+            val contentColor = when {
+                topic.isCompleted -> MaterialTheme.colorScheme.onPrimary
+                !canAccessTopicByXp || !enoughtMoneyForStartTopic -> MaterialTheme.colorScheme.onErrorContainer
+                else -> MaterialTheme.colorScheme.onPrimary
+            }
 
-                !canAccessTopicByXp -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.req),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                stringResource(
-                                    Res.string.topic_required_xp,
-                                    requiredXp
-                                ),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f))
-                                .padding(vertical = 4.dp)
-                        )
+            val isReq = !canAccessTopicByXp || !enoughtMoneyForStartTopic
+            val reqXpOrCoin = if (!canAccessTopicByXp) stringResource(
+                Res.string.topic_required_xp,
+                requiredXp
+            ) else topic.price.toString()
 
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.gain),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.topicXp.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Image(painter = painterResource(Res.drawable.icon_experience), contentDescription = null, modifier = Modifier.size(20.dp))
-                            }
-                        }
-                    }
-                }
+            val gainExperience = topic.topicXp.toString()
+            val gainCoin = topic.coinCompleteTopic.toString()
+            TopicInfoRow(
+                backgroundColor = backgroundColor,
+                isReq = isReq,
+                reqXpOrCoin = reqXpOrCoin,
+                gainExperience = gainExperience,
+                gainCoin = gainCoin,
+                contentColorAlpha = contentColorAlpha,
+                contentColor = contentColor
+            )
+        }
+    }
+}
 
-                !canAffordTopic -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.req),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.price.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Image(
-                                    painter = painterResource(Res.drawable.coins),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f))
-                                .padding(vertical = 4.dp)
-                        )
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.gain),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.topicXp.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Image(painter = painterResource(Res.drawable.icon_experience), contentDescription = null, modifier = Modifier.size(20.dp))
-                            }
-                        }
-                    }
-                }
-
-                else -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.price),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.price.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Image(
-                                    painter = painterResource(Res.drawable.coins),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
-                                .padding(vertical = 4.dp)
-                        )
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                stringResource(Res.string.gain),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    topic.topicXp.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Image(painter = painterResource(Res.drawable.icon_experience), contentDescription = null, modifier = Modifier.size(20.dp))
-                            }
-                        }
-                    }
-                }
+@Composable
+private fun TopicInfoRow(
+    backgroundColor: Color,
+    isReq: Boolean,
+    reqXpOrCoin: String,
+    gainExperience: String,
+    gainCoin: String,
+    contentColorAlpha: Float,
+    contentColor: Color,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                stringResource(if (isReq) Res.string.req else Res.string.price),
+                style = MaterialTheme.typography.bodySmall,
+                color = contentColor.copy(alpha = contentColorAlpha)
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    reqXpOrCoin,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+                Image(
+                    painter = painterResource(if (isReq) Res.drawable.icon_experience else Res.drawable.coins),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
             }
         }
+
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(contentColor.copy(alpha = 0.3f))
+                .padding(vertical = 4.dp, horizontal = 2.dp)
+        )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                stringResource(Res.string.gain),
+                style = MaterialTheme.typography.bodySmall,
+                color = contentColor.copy(alpha = contentColorAlpha)
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    gainExperience,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+                Image(
+                    painter = painterResource(Res.drawable.icon_experience),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    gainCoin,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+                Image(
+                    painter = painterResource(Res.drawable.coins),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorImage() {
+    if (LocalInspectionMode.current) {
+        Image(
+            painter = painterResource(Res.drawable.defaultProfilePhoto),
+            contentDescription = null
+        )
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                stringResource(Res.string.loading_error),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun ConfirmationDialog(
+    showDialog: Boolean,
+    topicName: String,
+    topicPrice: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(Res.string.topic_confirmation_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        Res.string.topic_confirmation_message,
+                        topicName,
+                        topicPrice
+                    )
+                )
+            },
+            confirmButton = {
+                Button(onClick = onConfirm) {
+                    Text(stringResource(Res.string.action_confirm))
+                }
+            },
+            dismissButton = {
+                Button(onClick = onDismiss) {
+                    Text(stringResource(Res.string.action_cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun RequirementDialog(
+    showDialog: Boolean,
+    title: String,
+    message: String,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(title) },
+            text = { Text(message) },
+            confirmButton = {
+                Button(onClick = onDismiss) {
+                    Text(stringResource(Res.string.action_cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun InsufficientCoinsDialog(
+    showDialog: Boolean,
+    topicPrice: Int,
+    currentUserCoins: Int,
+    onGoToShopClick: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(Res.string.topic_insufficient_coins_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        Res.string.topic_insufficient_coins_message,
+                        topicPrice,
+                        currentUserCoins
+                    )
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    onDismiss()
+                    onGoToShopClick()
+                }) {
+                    Text(stringResource(Res.string.go_to_shop))
+                }
+            },
+            dismissButton = {
+                Button(onClick = onDismiss) {
+                    Text(stringResource(Res.string.action_ok))
+                }
+            }
+        )
     }
 }

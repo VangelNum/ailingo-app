@@ -237,7 +237,7 @@ fun CustomTopicCard(
                             Image(
                                 painter = painterResource(Res.drawable.coins),
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(20.dp),
                             )
                         }
                     }
@@ -247,7 +247,7 @@ fun CustomTopicCard(
                             .width(1.dp)
                             .fillMaxHeight()
                             .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 4.dp, horizontal = 2.dp)
                     )
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -268,6 +268,17 @@ fun CustomTopicCard(
                             )
                             Image(
                                 painter = painterResource(Res.drawable.icon_experience),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                100.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Image(
+                                painter = painterResource(Res.drawable.coins),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp)
                             )
