@@ -10,7 +10,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 
 @Composable
 fun CustomButton(
@@ -21,11 +21,17 @@ fun CustomButton(
     content: @Composable RowScope.() -> Unit
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
+
+    val isCompactWidth = !adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+
     Button(
         onClick = onClick,
         modifier = modifier
-            .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight, minWidth = OutlinedTextFieldDefaults.MinWidth)
-            .then(if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) Modifier.fillMaxWidth() else Modifier),
+            .defaultMinSize(
+                minHeight = OutlinedTextFieldDefaults.MinHeight,
+                minWidth = OutlinedTextFieldDefaults.MinWidth
+            )
+            .then(if (isCompactWidth) Modifier.fillMaxWidth() else Modifier),
         enabled = enabled,
         shape = shape
     ) {

@@ -19,7 +19,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -38,14 +38,16 @@ fun CustomTextField(
     errorMessage: String? = null
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    val isCompactWidth = !adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     Spacer(modifier = Modifier.height(4.dp))
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
         modifier = modifier
-            .focusRequester(focusRequester).height(OutlinedTextFieldDefaults.MinHeight)
-            .then(if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) Modifier.fillMaxWidth() else Modifier),
+            .focusRequester(focusRequester)
+            .height(OutlinedTextFieldDefaults.MinHeight)
+            .then(if (isCompactWidth) Modifier.fillMaxWidth() else Modifier),
         shape = RoundedCornerShape(32.dp),
         placeholder = {
             Text(stringResource(placeholderResId), color = Color.Gray)
@@ -56,6 +58,7 @@ fun CustomTextField(
         trailingIcon = trailingIcon,
         isError = isError
     )
+
     if (isError && errorMessage != null) {
         Text(
             text = errorMessage,

@@ -53,7 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
@@ -263,9 +263,13 @@ fun ProfileStats(user: User, modifier: Modifier = Modifier) {
             modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 12.dp),
             color = MaterialTheme.colorScheme.onSurface
         )
-
+        val isCompactWidth = !adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
         ElevatedCard(
-            modifier = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) Modifier.fillMaxWidth() else Modifier.fillMaxWidth(0.5f),
+            modifier = if (isCompactWidth) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier.fillMaxWidth(0.5f)
+            },
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surface

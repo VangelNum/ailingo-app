@@ -35,6 +35,7 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -92,8 +93,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import org.ailingo.app.core.presentation.UiState
+import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
 import org.ailingo.app.features.analysis.data.model.AnalysisInfo
 import org.ailingo.app.features.analysis.data.model.IssuesMessage
+import org.ailingo.app.getPlatformName
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -120,15 +123,13 @@ fun AnalysisScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
-    ) { padding ->
-        val topPadding = padding.calculateTopPadding()
+    ) { innerPadding ->
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(),
+                .padding(if (getPlatformName() == PlatformName.Android) PaddingValues(0.dp) else innerPadding),
             color = MaterialTheme.colorScheme.background
         ) {
-            Spacer(modifier = Modifier.height(topPadding))
             AnimatedContent(
                 targetState = Pair(analysisState, showAnalysisTypes),
                 transitionSpec = {

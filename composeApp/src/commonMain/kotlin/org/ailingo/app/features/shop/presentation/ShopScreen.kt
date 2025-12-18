@@ -51,6 +51,8 @@ import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.core.presentation.custom.CustomButton
+import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
+import org.ailingo.app.getPlatformName
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -59,6 +61,7 @@ fun ShopScreen(
     availableItemsState: UiState<List<ShopItemUiState>>,
     onClaim: (itemId: Long) -> Unit
 ) {
+    val platform = getPlatformName()
     when (availableItemsState) {
         is UiState.Error -> {
             ErrorScreen(modifier = Modifier.fillMaxSize(), errorMessage = availableItemsState.message, image = Res.drawable.errorstate)
@@ -78,6 +81,17 @@ fun ShopScreen(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    if (platform == PlatformName.Android) {
+                        item {
+                            CustomButton(onClick = {
+
+                            }, shape = RoundedCornerShape(16.dp)) {
+                                Text("Смотреть рекламу")
+                                Text(" +5 ")
+                                Image(painterResource(Res.drawable.coins), contentDescription = null, modifier = Modifier.size(24.dp))
+                            }
+                        }
+                    }
                     items(availableItemsState.data, key = { it.shopItem.id }) { itemUiState ->
                         ShopItemCard(
                             itemUiState = itemUiState,

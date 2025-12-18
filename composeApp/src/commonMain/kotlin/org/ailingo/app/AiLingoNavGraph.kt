@@ -37,7 +37,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.core.presentation.navigation.NavigationHandler
@@ -45,6 +45,7 @@ import org.ailingo.app.core.presentation.snackbar.ObserveAsEvents
 import org.ailingo.app.core.presentation.snackbar.SnackbarController
 import org.ailingo.app.core.presentation.topappbar.TopAppBarCenter
 import org.ailingo.app.core.presentation.topappbar.TopAppBarWithProfile
+import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
 import org.ailingo.app.features.achievements.presentation.AchievementsEvent
 import org.ailingo.app.features.achievements.presentation.AchievementsScreen
 import org.ailingo.app.features.achievements.presentation.AchievementsViewModel
@@ -53,6 +54,7 @@ import org.ailingo.app.features.analysis.presentation.AnalysisScreen
 import org.ailingo.app.features.analysis.presentation.AnalysisViewModel
 import org.ailingo.app.features.buns.presentation.BunsScreen
 import org.ailingo.app.features.chat.presentation.ChatScreen
+import org.ailingo.app.features.chat.presentation.ChatScreenAndroidFeature
 import org.ailingo.app.features.chat.presentation.ChatViewModel
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryScreen
 import org.ailingo.app.features.chathistory.presentation.ChatHistoryViewModel
@@ -102,13 +104,15 @@ fun AiLingoNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val adaptiveInfo = currentWindowAdaptiveInfo()
+
     val customNavSuiteType = with(adaptiveInfo) {
-        if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED) {
+        if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
             NavigationSuiteType.NavigationDrawer
         } else {
             NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo)
         }
     }
+
     NavigationHandler(navController = navController, loginViewModel = loginViewModel)
     val navigationSuiteState = rememberNavigationSuiteScaffoldState(initialValue = NavigationSuiteScaffoldValue.Hidden)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -186,7 +190,7 @@ fun AiLingoNavGraph(
                 ),
                 modifier = Modifier.padding(PaddingValues(top = innerPadding.calculateTopPadding())),
                 navigationSuiteItems = {
-                    val screensToShow: List<ScreenInfo> = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED) {
+                    val screensToShow: List<ScreenInfo> = if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
                         screenForLargePortrait
                     } else {
                         screenForCompactPortrait
@@ -217,9 +221,7 @@ fun AiLingoNavGraph(
                             }
                         )
                     }
-                    if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
-                        || adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
-                    ) {
+                    if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
                         item(
                             icon = {
                                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
@@ -293,21 +295,41 @@ fun AiLingoNavGraph(
                         val messagesState = chatViewModel.messages.collectAsStateWithLifecycle().value
                         val translateState = chatViewModel.translateState.collectAsStateWithLifecycle().value
                         val singleMessageCheckState = chatViewModel.singleMessageCheckState.collectAsStateWithLifecycle().value
-                        ChatScreen(
-                            topicName = args.topicName ?: args.topicIdea ?: "empty?",
-                            topicImage = args.topicImage?: DEFAULT_IMAGE_URL,
-                            chatUiState = chatUiState,
-                            messagesState = messagesState,
-                            translateState = translateState,
-                            singleMessageCheckState = singleMessageCheckState,
-                            onEvent = { event ->
-                                chatViewModel.onEvent(event)
-                            },
-                            userAvatar = if (loginState is UiState.Success) loginState.data.avatar else null,
-                            onNavigateToAnalyzeConversation = {
-                                navController.navigate(AnalysisPage(chatViewModel.conversationId))
-                            }
-                        )
+
+                        // platform specific code
+                        if (getPlatformName() == PlatformName.Android) {
+                            ChatScreenAndroidFeature(
+                                topicName = args.topicName ?: args.topicIdea ?: "empty?",
+                                topicImage = args.topicImage ?: DEFAULT_IMAGE_URL,
+                                chatUiState = chatUiState,
+                                messagesState = messagesState,
+                                translateState = translateState,
+                                singleMessageCheckState = singleMessageCheckState,
+                                onEvent = { event ->
+                                    chatViewModel.onEvent(event)
+                                },
+                                userAvatar = if (loginState is UiState.Success) loginState.data.avatar else null,
+                                onNavigateToAnalyzeConversation = {
+                                    navController.navigate(AnalysisPage(chatViewModel.conversationId))
+                                }
+                            )
+                        } else {
+                            ChatScreen(
+                                topicName = args.topicName ?: args.topicIdea ?: "empty?",
+                                topicImage = args.topicImage ?: DEFAULT_IMAGE_URL,
+                                chatUiState = chatUiState,
+                                messagesState = messagesState,
+                                translateState = translateState,
+                                singleMessageCheckState = singleMessageCheckState,
+                                onEvent = { event ->
+                                    chatViewModel.onEvent(event)
+                                },
+                                userAvatar = if (loginState is UiState.Success) loginState.data.avatar else null,
+                                onNavigateToAnalyzeConversation = {
+                                    navController.navigate(AnalysisPage(chatViewModel.conversationId))
+                                }
+                            )
+                        }
 
                         LaunchedEffect(chatViewModel.conversationId) {
                             if (chatViewModel.conversationId != "") {
@@ -533,7 +555,7 @@ fun AiLingoNavGraph(
                         val achievementViewModel = koinViewModel<AchievementsViewModel>()
                         val achievementUiState = achievementViewModel.achievementsState.collectAsStateWithLifecycle().value
                         val claimAchievementState = achievementViewModel.claimAchievementsState.collectAsStateWithLifecycle().value
-                        AchievementsScreen(achievementUiState, claimAchievementState, onEvent = { event->
+                        AchievementsScreen(achievementUiState, claimAchievementState, onEvent = { event ->
                             achievementViewModel.onEvent(event)
                         })
                         LaunchedEffect(claimAchievementState) {

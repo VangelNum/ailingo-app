@@ -8,8 +8,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.ailingo.app.core.presentation.UiState
@@ -199,7 +197,7 @@ class ChatViewModel(
     }
 
     private fun getCurrentTimestamp(): String {
-        val currentInstant: Instant = Clock.System.now()
+        val currentInstant: kotlin.time.Instant = kotlin.time.Clock.System.now()
         val timeZone: TimeZone = TimeZone.UTC
         val localDateTime = currentInstant.toLocalDateTime(timeZone)
         return localDateTime.toString() + "Z"

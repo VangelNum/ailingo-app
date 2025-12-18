@@ -62,7 +62,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
@@ -406,17 +405,23 @@ fun TranslateMessageBottomSheet(
     selectedText: String,
     translateState: UiState<String>
 ) {
-    AnimatedVisibility(translateSheetState.isVisible) {
+    if (translateSheetState.isVisible) {
         ModalBottomSheet(
-            sheetState = translateSheetState,
             onDismissRequest = {
                 scope.launch {
                     translateSheetState.hide()
                 }
-            }
+            },
+            sheetState = translateSheetState,
+            modifier = Modifier.defaultMinSize(minHeight = 250.dp)
         ) {
             Column(
-                modifier = Modifier.wrapContentHeight().verticalScroll(rememberScrollState()).padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .wrapContentHeight()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     selectedText,
@@ -452,30 +457,30 @@ fun TranslateMessageBottomSheet(
 
                 AnimatedContent(
                     targetState = translateState,
+                    label = "evaluationResultAnimation",
                     transitionSpec = {
-                        if (targetState is UiState.Loading) {
-                            fadeIn() togetherWith fadeOut()
-                        } else {
-                            slideInVertically { height -> height } togetherWith
-                                    slideOutVertically { height -> -height }
-                        }.using(
-                            SizeTransform(clip = false)
-                        )
-                    },
-                    label = "translationAnimation"
+                        (slideInVertically { height -> height } + fadeIn()) togetherWith
+                                (slideOutVertically { height -> -height } + fadeOut()) using
+                                SizeTransform(clip = false)
+                    }
                 ) { targetState ->
-                    Text(
-                        when (targetState) {
-                            is UiState.Success -> targetState.data
-                            is UiState.Loading -> stringResource(Res.string.translating)
-                            is UiState.Error -> stringResource(Res.string.translation_error, targetState.message)
-                            else -> stringResource(Res.string.no_translation)
-                        },
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            when (targetState) {
+                                is UiState.Success -> targetState.data
+                                is UiState.Loading -> stringResource(Res.string.translating)
+                                is UiState.Error -> stringResource(Res.string.translation_error, targetState.message)
+                                else -> stringResource(Res.string.no_translation)
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
+                Spacer(modifier = Modifier.weight(1f, fill = false))
                 Spacer(modifier = Modifier.height(8.dp))
+
                 CustomButton(
                     onClick = {
                         scope.launch {
@@ -505,13 +510,15 @@ fun SingleMessageCheckBottomSheet(
             onDismissRequest = {
                 onShowSingleMessageImprovementsChange(false)
             },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            modifier = Modifier.defaultMinSize(minHeight = 250.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .wrapContentHeight()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     stringResource(Res.string.suggestions_to_improve),
@@ -585,6 +592,7 @@ fun SingleMessageCheckBottomSheet(
                     }
                 }
 
+                Spacer(modifier = Modifier.weight(1f, fill = false))
                 Spacer(modifier = Modifier.height(16.dp))
                 CustomButton(
                     onClick = {
@@ -701,7 +709,7 @@ fun ChatMessageItem(
                                 Text(stringResource(Res.string.translate))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 //TODO PLAY AUDIO ON ALL PLATFORMS
-                                Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null)
+                                //Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null)
                             }
                         }
                     }

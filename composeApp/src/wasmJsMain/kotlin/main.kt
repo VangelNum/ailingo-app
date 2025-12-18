@@ -20,10 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.ComposeViewport
 import androidx.navigation.ExperimentalBrowserHistoryApi
-import androidx.navigation.bindToNavigation
+import androidx.navigation.bindToBrowserNavigation
 import androidx.navigation.compose.rememberNavController
 import kotlinx.browser.document
-import kotlinx.browser.window
 import org.ailingo.app.App
 import org.ailingo.app.di.initKoin
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -66,7 +65,7 @@ fun main() {
             //https://github.com/JetBrains/compose-multiplatform-core/pull/1621
             //https://github.com/JetBrains/compose-multiplatform-core/pull/1640
             LaunchedEffect(Unit) {
-                window.bindToNavigation(navController)
+                navController.bindToBrowserNavigation()
             }
         } else {
             Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.8f))) {

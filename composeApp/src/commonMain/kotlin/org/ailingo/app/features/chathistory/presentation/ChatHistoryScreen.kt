@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -53,6 +52,7 @@ import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.chathistory.data.model.ConversationHistory
 import org.ailingo.app.features.topics.presentation.DEFAULT_IMAGE_URL
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Instant
 
 @Composable
 fun ChatHistoryScreen(

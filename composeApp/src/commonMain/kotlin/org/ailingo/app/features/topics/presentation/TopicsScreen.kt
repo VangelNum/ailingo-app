@@ -59,7 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import org.ailingo.app.core.presentation.EmptyScreen
 import org.ailingo.app.core.presentation.ErrorScreen
 import org.ailingo.app.core.presentation.LoadingScreen
@@ -67,7 +67,6 @@ import org.ailingo.app.core.presentation.UiState
 import org.ailingo.app.features.topics.data.model.Topic
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-
 
 @Composable
 fun TopicsScreen(
@@ -301,10 +300,11 @@ fun TopicsContent(
 ) {
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val adaptiveLazyGridSize =
-        if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED ||
-            adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
-        ) 260.dp
-        else 190.dp
+        if (adaptiveInfo.windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)) {
+            260.dp
+        } else {
+            170.dp
+        }
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(adaptiveLazyGridSize),
         verticalItemSpacing = 8.dp,

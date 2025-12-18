@@ -20,7 +20,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -42,13 +42,17 @@ fun CustomAuthTextField(
     val adaptiveInfo = currentWindowAdaptiveInfo()
     Text(stringResource(labelResId), style = MaterialTheme.typography.titleMedium)
     Spacer(modifier = Modifier.height(4.dp))
+
+    val isCompactWidth = !adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
         modifier = modifier
-            .focusRequester(focusRequester).defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
-            .then(if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) Modifier.fillMaxWidth() else Modifier),
+            .focusRequester(focusRequester)
+            .defaultMinSize(minHeight = OutlinedTextFieldDefaults.MinHeight)
+            .then(if (isCompactWidth) Modifier.fillMaxWidth() else Modifier),
         shape = RoundedCornerShape(32.dp),
         placeholder = {
             Text(stringResource(placeholderResId), color = Color.Gray)

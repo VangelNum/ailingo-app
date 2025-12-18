@@ -36,7 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import coil3.compose.AsyncImage
 import org.ailingo.app.core.presentation.LoadingScreen
 import org.ailingo.app.core.presentation.UiState
@@ -54,48 +54,42 @@ fun TopAppBarWithProfile(
     TopAppBar(
         modifier = Modifier,
         title = {
-            when (adaptiveInfo.windowSizeClass.windowWidthSizeClass) {
-                WindowWidthSizeClass.EXPANDED -> {
-                    Box(
-                        modifier = Modifier
-                            .height(TopAppBarDefaults.TopAppBarExpandedHeight)
-                            .width(360.dp)
-                            .offset((-16).dp, 0.dp)
-                            .background(Color.White)
-                    )
-                    Icon(
-                        painter = painterResource(Res.drawable.ailingologowithoutbackground),
-                        contentDescription = null,
-                        tint = Color.Black,
-                        modifier = Modifier.padding(top = 10.dp).height(40.dp)
-                    )
-                }
-
-                WindowWidthSizeClass.MEDIUM -> {
-                    Box(
-                        modifier = Modifier
-                            .height(TopAppBarDefaults.TopAppBarExpandedHeight)
-                            .width(90.dp)
-                            .offset((-16).dp, 0.dp)
-                            .background(Color.White)
-                    )
-                    Icon(
-                        painter = painterResource(Res.drawable.logo),
-                        contentDescription = null,
-                        tint = Color.Black,
-                        modifier = Modifier.padding(top = 10.dp).padding(start = 8.dp)
-                            .height(40.dp)
-                    )
-                }
-
-                else -> {
-                    Icon(
-                        painter = painterResource(Res.drawable.logo),
-                        contentDescription = null,
-                        tint = Color.Black,
-                        modifier = Modifier.height(40.dp)
-                    )
-                }
+            if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
+                Box(
+                    modifier = Modifier
+                        .height(TopAppBarDefaults.TopAppBarExpandedHeight)
+                        .width(360.dp)
+                        .offset((-16).dp, 0.dp)
+                        .background(Color.White)
+                )
+                Icon(
+                    painter = painterResource(Res.drawable.ailingologowithoutbackground),
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.padding(top = 10.dp).height(40.dp)
+                )
+            } else if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+                Box(
+                    modifier = Modifier
+                        .height(TopAppBarDefaults.TopAppBarExpandedHeight)
+                        .width(90.dp)
+                        .offset((-16).dp, 0.dp)
+                        .background(Color.White)
+                )
+                Icon(
+                    painter = painterResource(Res.drawable.logo),
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.padding(top = 10.dp).padding(start = 8.dp)
+                        .height(40.dp)
+                )
+            } else {
+                Icon(
+                    painter = painterResource(Res.drawable.logo),
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.height(40.dp)
+                )
             }
         },
         actions = {

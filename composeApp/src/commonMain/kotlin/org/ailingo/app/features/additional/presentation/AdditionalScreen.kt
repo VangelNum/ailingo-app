@@ -39,7 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
 import org.ailingo.app.getPlatformName
 import org.jetbrains.compose.resources.DrawableResource
@@ -81,7 +81,7 @@ fun AdditionalScreen(
 
     val adaptiveInfo = currentWindowAdaptiveInfo()
 
-    val selectedItems = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED) {
+    val selectedItems = if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
         itemsForLargeScreens
     } else {
         itemsForCompactScreens

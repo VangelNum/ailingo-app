@@ -60,7 +60,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import coil3.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -320,12 +320,16 @@ fun AvatarProfile(
         }
     }
     val adaptiveInfo = currentWindowAdaptiveInfo()
-    val modifier = if (adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT)
-            Modifier.fillMaxWidth()
-        else Modifier.width(OutlinedTextFieldDefaults.MinWidth)
+    val isCompactWidth = !adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val cardModifier = if (isCompactWidth) {
+        Modifier.fillMaxWidth()
+    } else {
+        Modifier.width(OutlinedTextFieldDefaults.MinWidth)
+    }
+
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = modifier
+        modifier = cardModifier
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

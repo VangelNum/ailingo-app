@@ -67,7 +67,6 @@
     <string name="password_must_be_between">Пароль должен содержать от 8 до 24 символов</string>
     <string name="invalid_email_format">Неверный формат электронной почты</string>
     <string name="name_cannot_be_blank">Имя не может быть пустым</string>
-    <string name="error">Ошибка</string>
     <string name="delete_avatar">Удалить аватар</string>
     <string name="bot_greeting_topic1">Привет! Поговорим о распорядке дня. Как обычно проходит твой день?</string>
     <string name="bot_greeting_topic2">Привет! Давай сосредоточимся на описании твоего любимого хобби. Расскажи о нём!</string>
@@ -216,4 +215,34 @@
     <string name="go_to_shop">Перейти в магазин</string>
     <string name="lecture">Лекции</string>
 
+    <string name="voice_pronunciation_check">Проверка произношения</string>
+    <string name="stop_recording">Остановить запись</string>
+    <string name="start_recording">Начать запись</string>
+    <string name="recording">Идет запись...</string>
+    <string name="processing_voice">Обработка вашего голоса...</string>
+    <string name="tap_microphone">Нажмите на микрофон, чтобы записать свой голос</string>
+    <string name="evaluation_results">Результаты оценки:</string>
+    <string name="what_we_heard">Что мы услышали:</string>
+    <string name="overall_confidence">Общая уверенность:</string>
+    <string name="speech_rate">Скорость речи:</string>
+    <string name="suggestions_corrections">Предложения и исправления:</string>
+    <string name="original_text">Оригинал: "%1$s"</string>
+    <string name="issue">Проблема: %1$s</string>
+    <string name="suggestions">Предложения: %1$s</string>
+    <string name="no_specific_feedback">Не получено конкретных отзывов. Возможно, аудио было нечетким или слишком коротким.</string>
+    <string name="error">Ошибка: %1$s</string>
+    <string name="evaluation_results_appear">Результаты оценки вашего голоса появятся здесь после записи и отправки.</string>
+
+    <string name="what_we_heard_with_highlights">Что мы услышали:</string>
+    <string name="confidence_assessment">Оценка: %1$s</string>
+    <string name="confidence_level_high">Высокая уверенность</string>
+    <string name="confidence_level_medium">Средняя уверенность</string>
+    <string name="confidence_level_low">Низкая уверенность</string>
+    <string name="confidence_level_very_low">Очень низкая уверенность</string>
+    <string name="speech_rate_assessment">Темп: %1$s</string>
+    <string name="speech_rate_very_fast">Очень быстро</string>
+    <string name="speech_rate_fast">Быстро</string>
+    <string name="speech_rate_normal">Нормальный</string>
+    <string name="speech_rate_slow">Медленно</string>
+    <string name="speech_rate_very_slow">Очень медленно</string>
 </resources>

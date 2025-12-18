@@ -7,24 +7,21 @@ import coil3.compose.setSingletonImageLoaderFactory
 import org.ailingo.app.core.utils.coil.asyncImageLoader
 import org.ailingo.app.core.utils.coil.enableDiskCache
 import org.ailingo.app.core.utils.deviceinfo.util.PlatformName
-import org.koin.compose.KoinContext
 
 @Composable
 internal fun App(
     navController: NavHostController = rememberNavController()
 ) {
-    KoinContext {
-        setSingletonImageLoaderFactory { context ->
-            if (getPlatformName() == PlatformName.Web) {
-                context.asyncImageLoader()
-            } else {
-                context.asyncImageLoader().enableDiskCache()
-            }
+    setSingletonImageLoaderFactory { context ->
+        if (getPlatformName() == PlatformName.Web) {
+            context.asyncImageLoader()
+        } else {
+            context.asyncImageLoader().enableDiskCache()
         }
-        AiLingoNavGraph(
-            navController = navController
-        )
     }
+    AiLingoNavGraph(
+        navController = navController
+    )
 }
 
 internal expect fun openUrl(url: String?)
