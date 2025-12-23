@@ -245,4 +245,6 @@
     <string name="speech_rate_normal">Нормальный</string>
     <string name="speech_rate_slow">Медленно</string>
     <string name="speech_rate_very_slow">Очень медленно</string>
+
+    <string name="available_on_android">Доступно на Android</string>
 </resources>

@@ -249,4 +249,6 @@
     <string name="speech_rate_normal">Normal</string>
     <string name="speech_rate_slow">Slow</string>
     <string name="speech_rate_very_slow">Very slow</string>
+
+    <string name="available_on_android">Available on android</string>
 </resources>

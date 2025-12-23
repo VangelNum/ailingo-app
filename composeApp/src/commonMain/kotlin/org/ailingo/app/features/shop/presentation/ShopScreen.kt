@@ -1,11 +1,11 @@
 package org.ailingo.app.features.shop.presentation
 
 import ailingo.composeapp.generated.resources.Res
+import ailingo.composeapp.generated.resources.available_on_android
 import ailingo.composeapp.generated.resources.coins
 import ailingo.composeapp.generated.resources.coins_for_shop
 import ailingo.composeapp.generated.resources.emptystate
 import ailingo.composeapp.generated.resources.errorstate
-import ailingo.composeapp.generated.resources.here_is_empty
 import ailingo.composeapp.generated.resources.loadingstate
 import ailingo.composeapp.generated.resources.shop_button_bought
 import ailingo.composeapp.generated.resources.shop_button_buy
@@ -74,7 +74,7 @@ fun ShopScreen(
 
         is UiState.Success -> {
             if (availableItemsState.data.isEmpty()) {
-                EmptyScreen(text = Res.string.here_is_empty, image = Res.drawable.emptystate, modifier = Modifier.fillMaxSize())
+                EmptyScreen(text = Res.string.available_on_android, image = Res.drawable.emptystate, modifier = Modifier.fillMaxSize())
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
